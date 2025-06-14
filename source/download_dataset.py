@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 def download_cropnet(path):
     pass
 
-def download_placeholder(path, version = "v2.0"):
+def download_squad(path, version = "v2.0"):
     urls = {
         "v1.1": {
             "train": "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json",
@@ -44,10 +44,10 @@ def main(args):
 
     if dataset_name == "cropnet":
         download_cropnet(args.path)
-    elif dataset_name == "placeholder":
-        download_placeholder(args.path)
+    elif dataset_name == "squad":
+        download_squad(args.path)
     else:
-        raise ValueError("Invalid dataset name! Options: cropnet or placeholder")
+        raise ValueError("Invalid dataset name! Options: cropnet or squad")
 
 
 if __name__ == "__main__":
