@@ -1,0 +1,6 @@
+# Ignore datasets
+datasets/CropNet/
+datasets/SQuAD/
+
+# Ignore vitual env
+source/venv/
