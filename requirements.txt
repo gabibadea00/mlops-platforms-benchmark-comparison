@@ -2,3 +2,7 @@ transformers==4.51.3
 tokenizers==0.21.0
 requests>=2.25.1
 datasets>=2.0.0
+bitsandbytes==0.42.0
+accelerate==1.7.0
+peft==0.15.2
+evaluate==0.4.3
