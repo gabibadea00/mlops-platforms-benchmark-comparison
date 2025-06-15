@@ -1,45 +1,59 @@
 import os
+import json
 import requests
 import pandas as pd
 from argparse import ArgumentParser
-from datasets import load_dataset
+import tensorflow as tf
+from datetime import datetime
 
-def download_cropnet_streamed_fallback(path, region="01003", year=2021, max_rows=500):
-    cropnet_dir = os.path.join(path, "CropNet")
-    os.makedirs(cropnet_dir, exist_ok=True)
 
-    output_file = os.path.join(cropnet_dir, f"tiny_cropnet_streamed_{region}_{year}.csv")
-    if os.path.exists(output_file):
-        print(f"✔ Streamed subset already exists: {output_file}")
+def parse_example(example_proto):
+    return tf.io.parse_single_example(example_proto, {
+        "label": tf.io.FixedLenFeature([], tf.int64, default_value=0),
+        "ndvi_mean": tf.io.FixedLenFeature([], tf.float32, default_value=0.0),
+        "region": tf.io.FixedLenFeature([], tf.string, default_value=""),
+        "year": tf.io.FixedLenFeature([], tf.int64, default_value=0)
+    })
+
+def tfrecord_to_csv(tfrecord_dir, output_csv):
+    if os.path.exists(output_csv):
+        print(f"⏩ CSV already exists: {output_csv}")
+        return output_csv
+
+    print(f"🔄 Converting TFRecord files from {tfrecord_dir} to {output_csv}")
+    records = []
+    for filename in os.listdir(tfrecord_dir):
+        if filename.endswith(".tfrecord"):
+            tfrecord_path = os.path.join(tfrecord_dir, filename)
+            raw_dataset = tf.data.TFRecordDataset(tfrecord_path)
+            for raw_record in raw_dataset:
+                example = parse_example(raw_record)
+                parsed = {k: v.numpy().decode() if isinstance(v.numpy(), bytes) else v.numpy() for k, v in example.items()}
+                records.append(parsed)
+    if records:
+        df = pd.DataFrame(records)
+        df.to_csv(output_csv, index=False)
+        print(f"✅ Saved CSV to: {output_csv}")
+        return output_csv
+    else:
+        print("⚠️ No records found in TFRecords.")
+        return None
+
+def filter_csv_by_date(csv_path, start_date=None, end_date=None):
+    if not os.path.exists(csv_path): return
+    df = pd.read_csv(csv_path)
+    if "date" not in df.columns:
+        print(f"⚠️ No 'date' column in {csv_path}")
         return
 
-    try:
-        print(f"⬇ Attempting to stream Tiny-CropNet from HuggingFace (region={region}, year={year})...")
-        dataset_iter = load_dataset("fudong03/Tiny-CropNet", split="train", streaming=True)
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    if start_date:
+        df = df[df['date'] >= pd.to_datetime(start_date)]
+    if end_date:
+        df = df[df['date'] <= pd.to_datetime(end_date)]
 
-        selected_samples = []
-        fallback_samples = []
-
-        for sample in dataset_iter:
-            if sample.get("region") == region and sample.get("year") == year:
-                selected_samples.append(sample)
-                if len(selected_samples) >= max_rows:
-                    break
-            elif len(fallback_samples) < max_rows:
-                fallback_samples.append(sample)
-
-        if selected_samples:
-            df = pd.DataFrame(selected_samples)
-            print(f"✅ Matched {len(df)} rows for region={region}, year={year}")
-        else:
-            print(f"⚠ No exact match for region={region}, year={year}. Falling back to first {max_rows} available rows.")
-            df = pd.DataFrame(fallback_samples)
-
-        df.to_csv(output_file, index=False)
-        print(f"✅ Streamed dataset saved to: {output_file} (rows: {len(df)})")
-
-    except Exception as e:
-        print(f"❌ Failed to download streamed Tiny-CropNet: {e}")
+    df.to_csv(csv_path, index=False)
+    print(f"✅ Date filtered: {csv_path} (rows: {len(df)})")
 
 def download_squad(path, version="v2.0"):
     urls = {
@@ -52,20 +66,15 @@ def download_squad(path, version="v2.0"):
             "dev": "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json"
         }
     }
-
     if version not in urls:
         raise ValueError("Unsupported SQuAD version. Use 'v1.1' or 'v2.0'.")
-
     squad_dir = os.path.join(path, "SQuAD")
     os.makedirs(squad_dir, exist_ok=True)
-
     for split, url in urls[version].items():
         filename = os.path.join(squad_dir, os.path.basename(url))
-
         if os.path.exists(filename):
             print(f"✔ SQuAD {split} ({version}) already downloaded: {filename}")
             continue
-
         print(f"⬇ Downloading {split} set ({version}) to {filename}...")
         response = requests.get(url)
         if response.status_code == 200:
@@ -75,41 +84,47 @@ def download_squad(path, version="v2.0"):
         else:
             raise Exception(f"❌ Failed to download {url}: Status code {response.status_code}")
 
-def main(args):
-    if not os.path.exists(args.path):
-        raise ValueError("Invalid path: Path doesn't exist.")
-    if not os.path.isdir(args.path):
-        raise ValueError("Invalid path: Not a directory")
+def download_plantdoc(path):
+    url = "https://github.com/pratikkayal/PlantDoc-Dataset/archive/refs/heads/master.zip"
+    zip_path = os.path.join(path, "plantdoc_dataset.zip")
 
-    dataset_name = args.dataset.lower()
-
-    if dataset_name == "cropnet":
-        download_cropnet_streamed_fallback(
-            path=args.path,
-            region=args.region,
-            year=args.year,
-            max_rows=args.max
-        )
-    elif dataset_name == "squad":
-        version = args.version if args.version else "v2.0"
-        download_squad(args.path, version=version)
+    print("⬇ Downloading PlantDoc dataset...")
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+        with open(zip_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"✅ Saved PlantDoc zip to: {zip_path}")
     else:
-        raise ValueError("Invalid dataset name! Options: cropnet or squad")
+        raise Exception(f"❌ Failed to download PlantDoc: Status code {response.status_code}")
+
+    extract_dir = os.path.join(path, "PlantDoc")
+    if not os.path.exists(extract_dir):
+        import zipfile
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
+            print(f"✅ Extracted to: {extract_dir}")
+            os.remove(zip_path)
+            print(f"🗑️ Deleted zip file: {zip_path}")
+        except zipfile.BadZipFile:
+            print("❌ Error: ZIP is invalid. Please re-download manually.")
+    else:
+        print("✔ PlantDoc dataset already extracted.")
+
+def main(args):
+    os.makedirs(args.path, exist_ok=True)
+    if args.dataset.lower() == "squad":
+        download_squad(args.path, version=args.version or "v2.0")
+    elif args.dataset.lower() == "plantdoc":
+        download_plantdoc(args.path)
+    else:
+        raise ValueError("Invalid dataset name! Options: squad, plantdoc")
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('-p', '--path', type=str, required=True,
-                        help="Path where the dataset should be downloaded")
-    parser.add_argument('-d', '--dataset', type=str, required=True,
-                        help="Dataset name: 'CropNet' or 'SQuAD'")
-    parser.add_argument('-v', '--version', type=str, required=False,
-                        help="SQuAD version: 'v1.1' or 'v2.0'")
-    parser.add_argument('--region', type=str, default="01003",
-                        help="Region code for Tiny-CropNet filtering")
-    parser.add_argument('--year', type=int, default=2021,
-                        help="Year for Tiny-CropNet filtering")
-    parser.add_argument('--max', type=int, default=500,
-                        help="Max number of rows to download from Tiny-CropNet")
+    parser.add_argument('-p', '--path', required=True)
+    parser.add_argument('-d', '--dataset', required=True)
+    parser.add_argument('--version', help="SQuAD version")
     args = parser.parse_args()
-
     main(args)
