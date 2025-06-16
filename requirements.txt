@@ -6,8 +6,8 @@ bitsandbytes==0.42.0
 accelerate==1.7.0
 peft==0.15.2
 evaluate==0.4.3
-cropnet
 tensorflow 
 pandas
 datetime
 google-cloud-storage
+seaborn
