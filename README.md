@@ -1,6 +1,6 @@
 # Dataset Downloader
 
-This script downloads datasets like SQuAD and Plantdoc to a specified local directory. It checks if the files already exist and saves them in organized subfolders.
+This script downloads datasets like SQuAD, Plantdoc, Deepcovid, AdultCensus to a specified local directory. It checks if the files already exist and saves them in organized subfolders.
 
 ## Datasets
 
@@ -8,6 +8,12 @@ This script downloads datasets like SQuAD and Plantdoc to a specified local dire
 - TBA
   
 ### Plantdoc
+- TBA
+
+### Deepcovid
+- TBA
+
+### AdultCensus
 - TBA
   
 ## Setup
@@ -23,7 +29,7 @@ pip install -r requirements.txt
 
 ```bash
 The `-p` or `--path` argument sets the output folder.  
-The `-d` or `--dataset` argument chooses between `squad` or `Plantdoc`.  
+The `-d` or `--dataset` argument chooses between 'SQuAD', 'Plantdoc', 'Deepcovid', 'AdultCensus'  
 The `-v` or `--version` argument is optional and only used for SQuAD (`v1.1` or `v2.0`).  
 
 ### Example usage:
@@ -33,6 +39,12 @@ The `-v` or `--version` argument is optional and only used for SQuAD (`v1.1` or 
 python3 download_dataset.py -p ./../datasets -d squad -v v2.0
 # Download Plantdoc
 python3 download_dataset.py -p ./../datasets -d plantdoc
+# Download Deepcovid dataset
+# https://github.com/shervinmin/DeepCovid/tree/masterhttps://github.com/shervinmin/DeepCovid/tree/master
+python3 download_dataset.py -p ./../datasets -d deepcovid
+# Download Adult Income
+# https://github.com/mbeps/Adults_Income_Prediction/tree/main
+python3 download_dataset.py -p ./../datasets -d adult
 ```
 ### The resulting folder structure will look like:
 
@@ -42,8 +54,13 @@ datasets/
 │   ├── train-v2.0.json
 │   └── dev-v2.0.json
 ├── Plantdoc/
-│   ├── test
-│   └── train
+│   ├── test/
+│   └── train/
+├── Deepcovid/
+│   ├── test/
+│   └── train/
+├── AdultCensus/
+│   └── adult_combined.csv
 ```
 ### Requirements for this script are:  
 
