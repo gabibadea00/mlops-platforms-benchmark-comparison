@@ -6,3 +6,5 @@ datasets/*
 # Ignore vitual env
 source/venv/
 venv/
+
+.DS_Store

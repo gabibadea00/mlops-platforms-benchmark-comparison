@@ -1,13 +1,10 @@
 # Dataset Downloader
 
-This script downloads datasets like SQuAD, Plantdoc, Deepcovid, AdultCensus to a specified local directory. It checks if the files already exist and saves them in organized subfolders.
+This script downloads datasets like Dataset-BERT, Deepcovid, AdultCensus to a specified local directory. It checks if the files already exist and saves them in organized subfolders.
 
 ## Datasets
 
-### SQuAD
-- TBA
-  
-### Plantdoc
+### Dataset-BERT
 - TBA
 
 ### Deepcovid
@@ -29,16 +26,11 @@ pip install -r requirements.txt
 
 ```bash
 The `-p` or `--path` argument sets the output folder.  
-The `-d` or `--dataset` argument chooses between 'SQuAD', 'Plantdoc', 'Deepcovid', 'AdultCensus'  
-The `-v` or `--version` argument is optional and only used for SQuAD (`v1.1` or `v2.0`).  
-
+The `-d` or `--dataset` argument chooses between 'Dataset-BERT', 'Deepcovid', 'AdultCensus'  
+```
 ### Example usage:
 
 ```bash
-# Download SQuAD v2.0
-python3 download_dataset.py -p ./../datasets -d squad -v v2.0
-# Download Plantdoc
-python3 download_dataset.py -p ./../datasets -d plantdoc
 # Download Deepcovid dataset
 # https://github.com/shervinmin/DeepCovid/tree/masterhttps://github.com/shervinmin/DeepCovid/tree/master
 python3 download_dataset.py -p ./../datasets -d deepcovid
@@ -50,17 +42,12 @@ python3 download_dataset.py -p ./../datasets -d adult
 
 ```bash
 datasets/
-├── SQuAD/
-│   ├── train-v2.0.json
-│   └── dev-v2.0.json
-├── Plantdoc/
-│   ├── test/
-│   └── train/
 ├── Deepcovid/
 │   ├── test/
 │   └── train/
 ├── AdultCensus/
 │   └── adult_combined.csv
+├──
 ```
 ### Requirements for this script are:  
 

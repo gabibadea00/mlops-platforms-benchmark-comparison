@@ -11,3 +11,5 @@ pandas
 datetime
 google-cloud-storage
 seaborn
+torch
+torchvision
