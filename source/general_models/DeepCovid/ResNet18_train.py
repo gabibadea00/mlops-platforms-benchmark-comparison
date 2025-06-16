@@ -13,7 +13,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='COVID-19 Detection from X-ray Images')
     parser.add_argument('--batch_size', type=int, default=20, help='batch size')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--num_workers', type=int, default=0, help='num data loader workers')
+    parser.add_argument('--num_workers', type=int, default=4, help='num data loader workers')
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='learning rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum')
     parser.add_argument('--dataset_path', type=str, default='./data/', help='data directory')
@@ -27,7 +27,7 @@ def build_transforms():
             transforms.ToTensor(),
             transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])
         ]),
-        'val': transforms.Compose([
+        'test': transforms.Compose([
             transforms.Resize(224),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
@@ -37,10 +37,10 @@ def build_transforms():
 
 def load_data(data_dir, transforms_, batch_size, num_workers):
     datasets_ = {x: datasets.ImageFolder(os.path.join(data_dir, x), transforms_[x])
-                 for x in ['train', 'val']}
+                 for x in ['train', 'test']}
     dataloaders = {x: torch.utils.data.DataLoader(
                         datasets_[x], batch_size=batch_size, shuffle=True, num_workers=num_workers)
-                   for x in ['train', 'val']}
+                   for x in ['train', 'test']}
     dataset_sizes = {x: len(datasets_[x]) for x in datasets_}
     class_names = datasets_['train'].classes
     return dataloaders, dataset_sizes, class_names
@@ -62,7 +62,7 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
 
     for epoch in range(num_epochs):
         print(f'Epoch {epoch+1}/{num_epochs}\n' + '-'*10)
-        for phase in ['train','val']:
+        for phase in ['train','test']:
             if phase=='train':
                 scheduler.step()
                 model.train()
@@ -94,7 +94,7 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
 
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
-            if phase=='val' and epoch_acc > best_acc:
+            if phase=='test' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
@@ -102,7 +102,7 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
 
     time_elapsed = time.time() - since
     print(f'Training complete in {time_elapsed//60:.0f}m {time_elapsed%60:.0f}s')
-    print(f'Best val Acc: {best_acc:.4f}')
+    print(f'Best test Acc: {best_acc:.4f}')
 
     model.load_state_dict(best_model_wts)
     return model
@@ -112,7 +112,7 @@ def visualize_model(dataloaders, model, device, class_names, num_images=64):
     images_shown = 0
     fig = plt.figure()
     with torch.no_grad():
-        for inputs, labels in dataloaders['val']:
+        for inputs, labels in dataloaders['test']:
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = model(inputs)
@@ -126,21 +126,22 @@ def visualize_model(dataloaders, model, device, class_names, num_images=64):
                 if images_shown == num_images:
                     return
 
-def build_model(device):
+def build_model():
     model = models.resnet18(pretrained=True)
     for param in model.parameters():
         param.requires_grad = False
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 2)
-    return model.to(device)
+    return model
 
 def main():
     args = parse_args()
     transforms_ = build_transforms()
     dataloaders, dataset_sizes, class_names = load_data(args.dataset_path, transforms_, args.batch_size, args.num_workers)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
-    model = build_model(device)
+    model = build_model().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.fc.parameters(), lr=args.learning_rate, momentum=args.momentum)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)

@@ -24,7 +24,7 @@ def parse_args():
     return parser.parse_args()
 
 def load_model(model_path, device):
-    model = torch.load(model_path, map_location=device)
+    model = torch.load(model_path, map_location=device, weights_only=False)
     model.eval()
     return model
 
