@@ -10,3 +10,4 @@ tensorflow
 pandas
 datetime
 google-cloud-storage
+seaborn

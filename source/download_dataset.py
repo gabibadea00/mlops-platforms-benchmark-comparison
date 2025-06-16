@@ -140,41 +140,47 @@ def download_deepcovid(path):
       
 def download_adult(path):
     base = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/"
-    files = ["adult.data", "adult.test", "adult.names"]
+    files = ["adult.data", "adult.test"]
     dest = os.path.join(path, "AdultCensus")
     os.makedirs(dest, exist_ok=True)
 
     for fname in files:
-        url = base + fname
         out = os.path.join(dest, fname)
         if os.path.exists(out):
-            print(f"✔ Already downloaded: {fname}")
+            print(f"✔ {fname} deja descărcat.")
             continue
-        print(f"⬇ Downloading {fname}...")
-        r = requests.get(url, stream=True)
+        print(f"⬇ Descărcare {fname}...")
+        r = requests.get(base + fname, stream=True)
         if r.status_code == 200:
             with open(out, 'wb') as f:
                 for chunk in r.iter_content(8192):
                     f.write(chunk)
-            print(f"✅ Saved {fname}")
+            print(f"✅ Salvare {fname}")
         else:
-            print(f"❌ Failed to download {fname}: {r.status_code}")
+            print(f"❌ Eroare {fname}: {r.status_code}")
 
-    # Optional: combină data + test într-un CSV unic
     combined = os.path.join(dest, "adult_combined.csv")
-    if not os.path.exists(combined):
-        df_data = pd.read_csv(os.path.join(dest, "adult.data"),
-                              header=None, names=None,
-                              na_values=' ?', skipinitialspace=True)
-        df_test = pd.read_csv(os.path.join(dest, "adult.test"),
-                              header=0, names=df_data.columns,
-                              na_values=' ?', skipinitialspace=True)
-        df = pd.concat([df_data, df_test], ignore_index=True)
-        df.to_csv(combined, index=False)
-        print(f"✅ Combined CSV: {combined}")
-    else:
-        print("✔ Combined CSV already exists.")
-  
+    if os.path.exists(combined):
+        print("✔ adult_combined.csv deja există.")
+        return combined
+
+    col_names = [
+        "Age", "Workclass", "fnlwgt", "Education", "Education-num",
+        "Marital-status", "Occupation", "Relationship", "Race",
+        "Sex", "Capital-gain", "Capital-loss", "Hours-per-week",
+        "Native-country", "Earning_potential"
+    ]
+
+    df_data = pd.read_csv(os.path.join(dest, "adult.data"), names=col_names,
+                          sep=",", na_values=' ?', skipinitialspace=True)
+    df_test = pd.read_csv(os.path.join(dest, "adult.test"), names=col_names,
+                          sep=",", skiprows=1, na_values=' ?', skipinitialspace=True)
+
+    df = pd.concat([df_data, df_test], ignore_index=True)
+    df.to_csv(combined, index=False)
+    print(f"✅ adult_combined.csv creat ({df.shape[0]} rânduri, {df.shape[1]} coloane)")
+    return combined
+
 def main(args):
     os.makedirs(args.path, exist_ok=True)
     if args.dataset.lower() == "squad":
