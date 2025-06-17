@@ -11,6 +11,8 @@ from pandas import DataFrame
 from numpy import ndarray
 import mlflow, mlflow.sklearn
 
+mlflow.set_tracking_uri("http://209.38.209.220:5000")
+
 def load_dataset(path: str) -> DataFrame:
     return pd.read_csv(path)
 
