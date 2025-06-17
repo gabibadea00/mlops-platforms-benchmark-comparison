@@ -66,7 +66,6 @@ def train_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarra
         )
         print(f"Initial RF Accuracy: {acc:.4f}")
 
-
 def tune_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray) -> None:
     param_grid: Dict[str, List[Union[int, str, None]]] = {
         'n_estimators': [50, 100, 250],
