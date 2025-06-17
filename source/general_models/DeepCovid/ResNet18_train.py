@@ -8,6 +8,7 @@ import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
+import json
 
 def parse_args():
     parser = argparse.ArgumentParser(description='COVID-19 Detection from X-ray Images')
@@ -60,6 +61,13 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
+    stats = {
+        "train_loss": [],
+        "train_acc": [],
+        "test_loss": [],
+        "test_acc": []
+    }
+
     for epoch in range(num_epochs):
         print(f'Epoch {epoch+1}/{num_epochs}\n' + '-'*10)
         for phase in ['train','test']:
@@ -94,9 +102,16 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
 
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
-            if phase=='test' and epoch_acc > best_acc:
-                best_acc = epoch_acc
-                best_model_wts = copy.deepcopy(model.state_dict())
+            if phase == "train":
+                stats["train_loss"].append(round(epoch_loss, 4))
+                stats["train_acc"].append(round(epoch_acc.item(), 4))
+            else:
+                stats["test_loss"].append(round(epoch_loss, 4))
+                stats["test_acc"].append(round(epoch_acc.item(), 4))
+
+                if epoch_acc > best_acc:
+                    best_acc = epoch_acc
+                    best_model_wts = copy.deepcopy(model.state_dict())
 
         print()
 
@@ -105,7 +120,7 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
     print(f'Best test Acc: {best_acc:.4f}')
 
     model.load_state_dict(best_model_wts)
-    return model
+    return model, stats, best_acc
 
 def visualize_model(dataloaders, model, device, class_names, num_images=64):
     model.eval()
@@ -134,6 +149,31 @@ def build_model():
     model.fc = nn.Linear(num_ftrs, 2)
     return model
 
+def collect_metrics(training_stats: dict, class_names: list, args, best_acc: float, device: str):
+    metrics = {
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "learning_rate": args.learning_rate,
+        "momentum": args.momentum,
+        "device": device,
+        "model": "resnet18",
+        "frozen_layers": "all except fc",
+        "optimizer": "SGD",
+        "scheduler": {
+            "type": "StepLR",
+            "step_size": 7,
+            "gamma": 0.1
+        },
+        "class_names": class_names,
+        "training_stats": training_stats,
+        "best_test_accuracy": round(best_acc, 4)
+    }
+
+    with open("covid_training_metrics.json", "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    print("✅ Metricile au fost salvate în 'covid_training_metrics.json'")
+
 def main():
     args = parse_args()
     transforms_ = build_transforms()
@@ -146,10 +186,16 @@ def main():
     optimizer = optim.SGD(model.fc.parameters(), lr=args.learning_rate, momentum=args.momentum)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
-    model = train_model(dataloaders, dataset_sizes, model, criterion, optimizer, scheduler, device, num_epochs=args.epochs)
-    torch.save(model, f'covid_resnet18_epoch{args.epochs}.pt')
+    model, stats, best_acc = train_model(
+        dataloaders, dataset_sizes, model,
+        criterion, optimizer, scheduler, device,
+        num_epochs=args.epochs
+    )
 
+    torch.save(model, f'covid_resnet18_epoch{args.epochs}.pt')
+    collect_metrics(stats, class_names, args, best_acc.item(), str(device))
     visualize_model(dataloaders, model, device, class_names)
+
 
 if __name__ == '__main__':
     main()

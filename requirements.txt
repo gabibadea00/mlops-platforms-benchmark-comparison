@@ -13,3 +13,5 @@ google-cloud-storage
 seaborn
 torch
 torchvision
+mlflow
+urllib3==1.26.20

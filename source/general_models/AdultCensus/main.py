@@ -10,6 +10,10 @@ from typing import Dict, List, Union, Tuple
 from pandas import DataFrame
 from numpy import ndarray
 
+import json
+from sklearn.metrics import classification_report, confusion_matrix
+import joblib
+
 def load_dataset(path: str) -> DataFrame:
     return pd.read_csv(path)
 
@@ -40,31 +44,88 @@ def split_data(df: DataFrame, target: str) -> Tuple[ndarray, ndarray, ndarray, n
     y_test = test_df[target]
     scaler = StandardScaler()
     return scaler.fit_transform(X_train), scaler.transform(X_test), y_train, y_test
-
-def train_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray) -> None:
+    
+def train_rf(X_train, y_train, X_test, y_test, feature_names, label_map) -> Dict:
     model = RandomForestClassifier()
     model.fit(X_train, y_train)
-    print(f"Initial RF Accuracy: {model.score(X_test, y_test):.4f}")
+    return format_metrics(model, X_test, y_test, feature_names, label_map)
 
-def tune_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray) -> None:
-    param_grid: Dict[str, List[Union[int, str, None]]] = {
+    
+def tune_rf(X_train, y_train, X_test, y_test, feature_names, label_map) -> Dict:
+    param_grid = {
         'n_estimators': [50, 100, 250],
         'max_depth': [5, 10, 30, None],
         'min_samples_split': [2, 4],
         'max_features': ['sqrt', 'log2']
     }
-    grid_search = GridSearchCV(RandomForestClassifier(), param_grid, verbose=10, n_jobs=-1)
+    grid_search = GridSearchCV(RandomForestClassifier(), param_grid, verbose=0, n_jobs=-1)
     grid_search.fit(X_train, y_train)
-    print("Best RF params:", grid_search.best_params_)
-    print(f"Tuned RF Accuracy: {grid_search.best_estimator_.score(X_test, y_test):.4f}")
+    metrics = format_metrics(grid_search.best_estimator_, X_test, y_test, feature_names, label_map)
+    metrics["best_params"] = grid_search.best_params_
+    return metrics, grid_search.best_estimator_
+
+
+def format_metrics(model, X_test, y_test, feature_names: List[str], label_map: Dict[int, str]) -> Dict:
+    preds = model.predict(X_test)
+    report_raw = classification_report(
+        y_test, preds, output_dict=True,
+        target_names=[label_map[0], label_map[1]]
+    )
+    accuracy = model.score(X_test, y_test)
+
+    # Matrice brută: [[TN, FP], [FN, TP]]
+    tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
+
+    # Importanță trăsături
+    importances = dict(zip(feature_names, model.feature_importances_.tolist()))
+
+    return {
+        "accuracy": accuracy,
+        "classification_report": report_raw,
+        "confusion_matrix": {
+            "TP": int(tp),
+            "TN": int(tn),
+            "FP": int(fp),
+            "FN": int(fn)
+        },
+        "feature_importances": importances
+    }
 
 def main():
     df = load_dataset("./../../../datasets/AdultCensus/adult_combined.csv")
     df = preprocess_data(df)
     df = feature_selection(df, target='Earning_potential')
-    X_train, X_test, y_train, y_test = split_data(df, target='Earning_potential')
-    train_rf(X_train, y_train, X_test, y_test)
-    tune_rf(X_train, y_train, X_test, y_test)
+    
+    target = 'Earning_potential'
+    feature_names = df.drop(columns=target).columns.tolist()
+    label_map = {0: "<=50K", 1: ">50K"}
+    
+    X_train, X_test, y_train, y_test = split_data(df, target)
+
+    metrics = {}
+    metrics["initial_model"] = train_rf(X_train, y_train, X_test, y_test, feature_names, label_map)
+    metrics["tuned_model"], final_model = tune_rf(X_train, y_train, X_test, y_test, feature_names, label_map)
+
+    # 📄 Salvăm metricele în JSON
+    with open("model_metrics.json", "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    # 💾 Salvăm modelul
+    joblib.dump(final_model, "final_rf_model.joblib")
+
+    # 🧾 Salvăm specificațiile de input features
+    model_spec = {
+        "input_feature_names": feature_names,
+        "input_dimensions": len(feature_names),
+        "label_mapping": label_map,
+        "expected_input_shape": [None, len(feature_names)],
+        "model_file": "final_rf_model.joblib"
+    }
+
+    with open("model_spec.json", "w") as f:
+        json.dump(model_spec, f, indent=4)
+
+    print("✅ Metricele, modelul și specificațiile au fost salvate în folderul curent.")
 
 if __name__ == "__main__":
     main()
