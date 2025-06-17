@@ -10,6 +10,7 @@ from typing import Dict, List, Union, Tuple
 from pandas import DataFrame
 from numpy import ndarray
 import mlflow, mlflow.sklearn
+from mlflow.models.signature import infer_signature
 
 mlflow.set_tracking_uri("http://209.38.209.220:5000")
 
@@ -49,10 +50,22 @@ def train_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarra
         model = RandomForestClassifier()
         model.fit(X_train, y_train)
         acc = model.score(X_test, y_test)
+
         mlflow.log_param("model_type", "RandomForest")
         mlflow.log_metric("accuracy", acc)
-        mlflow.sklearn.log_model(model, artifact_path="random_forest_model")
+
+        # Infer signature și input example
+        input_example = pd.DataFrame(X_train).iloc[:5]
+        signature = infer_signature(X_train, model.predict(X_train))
+
+        mlflow.sklearn.log_model(
+            model,
+            name="random_forest_model",
+            input_example=input_example,
+            signature=signature
+        )
         print(f"Initial RF Accuracy: {acc:.4f}")
+
 
 def tune_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray) -> None:
     param_grid: Dict[str, List[Union[int, str, None]]] = {
@@ -71,13 +84,30 @@ def tune_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray
 
         mlflow.log_params(grid_search.best_params_)
         mlflow.log_metric("accuracy", acc)
-        mlflow.sklearn.log_model(best_model, "best_random_forest_model")
+
+        # Infer signature și input example
+        input_example = pd.DataFrame(X_train).iloc[:5]
+        signature = infer_signature(X_train, best_model.predict(X_train))
+
+        mlflow.sklearn.log_model(
+            best_model,
+            name="best_random_forest_model",
+            input_example=input_example,
+            signature=signature
+        )
+
         print("Best RF params:", grid_search.best_params_)
         print(f"Tuned RF Accuracy: {acc:.4f}")
 
 def main():
     mlflow.set_experiment("Adult Income Prediction")
-    mlflow.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflow.sklearn.autolog(
+        log_input_examples=True,
+        log_model_signatures=True,
+        log_datasets=False,
+        max_tuning_runs=3,
+        silent=True
+    )
     
     df = load_dataset("./../../../datasets/AdultCensus/adult_combined.csv")
     df = preprocess_data(df)
