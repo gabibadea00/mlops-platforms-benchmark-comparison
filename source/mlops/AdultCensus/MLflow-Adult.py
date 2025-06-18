@@ -12,7 +12,6 @@ from numpy import ndarray
 import mlflow, mlflow.sklearn
 from mlflow.models.signature import infer_signature
 
-mlflow.set_tracking_uri("http://209.38.209.220:5000")
 
 def load_dataset(path: str) -> DataFrame:
     return pd.read_csv(path)
@@ -99,6 +98,7 @@ def tune_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray
         print(f"Tuned RF Accuracy: {acc:.4f}")
 
 def main():
+    mlflow.set_tracking_uri("http://209.38.209.220:5000")
     mlflow.set_experiment("Adult Income Prediction")
     mlflow.sklearn.autolog(
         log_input_examples=True,
