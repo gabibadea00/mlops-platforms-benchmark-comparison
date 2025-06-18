@@ -102,16 +102,16 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
                 running_corrects += torch.sum(preds==labels.data)
 
             epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+            epoch_acc = running_corrects.float().item() / dataset_sizes[phase]
 
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
             if phase == "train":
                 stats["train_loss"].append(round(epoch_loss, 4))
-                stats["train_acc"].append(round(epoch_acc.item(), 4))
+                stats['train_acc'].append(round(epoch_acc, 4))
             else:
                 stats["test_loss"].append(round(epoch_loss, 4))
-                stats["test_acc"].append(round(epoch_acc.item(), 4))
+                stats["test_acc"].append(round(epoch_acc, 4))
 
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc

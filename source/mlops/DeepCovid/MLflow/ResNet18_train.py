@@ -102,16 +102,16 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
                 running_corrects += torch.sum(preds==labels.data)
 
             epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+            epoch_acc = running_corrects.float().item() / dataset_sizes[phase]
 
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
             if phase == "train":
                 stats["train_loss"].append(round(epoch_loss, 4))
-                stats["train_acc"].append(round(epoch_acc.item(), 4))
+                stats['train_acc'].append(round(epoch_acc, 4))
             else:
                 stats["test_loss"].append(round(epoch_loss, 4))
-                stats["test_acc"].append(round(epoch_acc.item(), 4))
+                stats["test_acc"].append(round(epoch_acc, 4))
 
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
@@ -188,7 +188,12 @@ def main():
     args = parse_args()
     transforms_ = build_transforms()
     dataloaders, dataset_sizes, class_names = load_data(args.dataset_path, transforms_, args.batch_size, args.num_workers)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device_name = "cpu"
+    if torch.cuda.is_available():
+        device_name = "cuda"
+    elif torch.mps.is_available():
+        device_name = "mps"
+    device = torch.device(device_name)
     print(f"Using device: {device}")
 
     model = build_model().to(device)

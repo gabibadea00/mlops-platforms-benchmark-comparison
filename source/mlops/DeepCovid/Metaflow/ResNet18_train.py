@@ -19,7 +19,14 @@ class CovidResNetFlow(FlowSpec):
 
     @step
     def start(self):
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        device_name = "cpu"
+        if torch.cuda.is_available():
+            device_name = "cuda"
+        elif torch.mps.is_available():
+            device_name = "mps"
+        device = torch.device(device_name)
+        print(f"Using device: {device}")
+        self.device = device
         transforms_ = {
             'train': transforms.Compose([
                 transforms.Resize(224),
@@ -93,7 +100,7 @@ class CovidResNetFlow(FlowSpec):
                     current.card['train_card'].refresh()
 
                 epoch_loss = running_loss / self.sizes[phase]
-                epoch_acc = float(running_corrects) / self.sizes[phase]
+                epoch_acc = running_corrects.float().item() / self.sizes[phase]
                 history[f'{phase}_loss'].append(epoch_loss)
                 history[f'{phase}_acc'].append(epoch_acc)
 
