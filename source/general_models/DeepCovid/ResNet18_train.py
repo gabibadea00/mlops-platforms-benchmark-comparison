@@ -9,6 +9,7 @@ import torchvision
 from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 import json
+from torchvision.models import ResNet18_Weights
 
 def parse_args():
     parser = argparse.ArgumentParser(description='COVID-19 Detection from X-ray Images')
@@ -72,7 +73,6 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
         print(f'Epoch {epoch+1}/{num_epochs}\n' + '-'*10)
         for phase in ['train','test']:
             if phase=='train':
-                scheduler.step()
                 model.train()
             else:
                 model.eval()
@@ -93,7 +93,8 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
                     if phase=='train':
                         loss.backward()
                         optimizer.step()
-
+                        scheduler.step()
+                        
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds==labels.data)
 
@@ -112,7 +113,6 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())
-
         print()
 
     time_elapsed = time.time() - since
@@ -142,7 +142,7 @@ def visualize_model(dataloaders, model, device, class_names, num_images=64):
                     return
 
 def build_model():
-    model = models.resnet18(pretrained=True)
+    model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
     for param in model.parameters():
         param.requires_grad = False
     num_ftrs = model.fc.in_features
@@ -191,7 +191,7 @@ def main():
         criterion, optimizer, scheduler, device,
         num_epochs=args.epochs
     )
-
+    
     torch.save(model, f'covid_resnet18_epoch{args.epochs}.pt')
     collect_metrics(stats, class_names, args, best_acc.item(), str(device))
     visualize_model(dataloaders, model, device, class_names)

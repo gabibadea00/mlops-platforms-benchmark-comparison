@@ -1,0 +1,120 @@
+{
+    "initial_model": {
+        "accuracy": 0.8483979936533934,
+        "classification_report": {
+            "<=50K": {
+                "precision": 0.8826622210823288,
+                "recall": 0.9240166465297356,
+                "f1-score": 0.9028661376008396,
+                "support": 7449.0
+            },
+            ">50K": {
+                "precision": 0.7128361237950279,
+                "recall": 0.6056034482758621,
+                "f1-score": 0.6548590072244233,
+                "support": 2320.0
+            },
+            "accuracy": 0.8483979936533934,
+            "macro avg": {
+                "precision": 0.7977491724386784,
+                "recall": 0.7648100474027988,
+                "f1-score": 0.7788625724126315,
+                "support": 9769.0
+            },
+            "weighted avg": {
+                "precision": 0.8423309133019483,
+                "recall": 0.8483979936533934,
+                "f1-score": 0.8439679348704386,
+                "support": 9769.0
+            }
+        },
+        "confusion_matrix": {
+            "TP": 1405,
+            "TN": 6883,
+            "FP": 566,
+            "FN": 915
+        },
+        "feature_importances": {
+            "Age": 0.23824825463689084,
+            "Education-num": 0.14547195181767858,
+            "Sex": 0.013147780134265145,
+            "Capital-gain": 0.14074226480494392,
+            "Capital-loss": 0.04681886103631277,
+            "Hours-per-week": 0.1351118771333504,
+            "Occupation_Exec-managerial": 0.02130338484768996,
+            "Occupation_Other-service": 0.007972891996116614,
+            "Occupation_Prof-specialty": 0.021187061385021237,
+            "Workclass_Self-emp-inc": 0.007813825715605186,
+            "Marital-status_Divorced": 0.006402322392714442,
+            "Marital-status_Married-civ-spouse": 0.0938219895803116,
+            "Marital-status_Never-married": 0.02597613899690613,
+            "Relationship_Husband": 0.0642044598311487,
+            "Relationship_Not-in-family": 0.008975883081020363,
+            "Relationship_Own-child": 0.0067154976382469605,
+            "Relationship_Unmarried": 0.003441433663761913,
+            "Relationship_Wife": 0.01264412130801525
+        }
+    },
+    "tuned_model": {
+        "accuracy": 0.8611935715016891,
+        "classification_report": {
+            "<=50K": {
+                "precision": 0.8740331491712707,
+                "recall": 0.9556987515102698,
+                "f1-score": 0.9130434782608695,
+                "support": 7449.0
+            },
+            ">50K": {
+                "precision": 0.7967980295566502,
+                "recall": 0.5577586206896552,
+                "f1-score": 0.6561866125760649,
+                "support": 2320.0
+            },
+            "accuracy": 0.8611935715016891,
+            "macro avg": {
+                "precision": 0.8354155893639605,
+                "recall": 0.7567286860999625,
+                "f1-score": 0.7846150454184673,
+                "support": 9769.0
+            },
+            "weighted avg": {
+                "precision": 0.8556908953575826,
+                "recall": 0.8611935715016891,
+                "f1-score": 0.8520435879559513,
+                "support": 9769.0
+            }
+        },
+        "confusion_matrix": {
+            "TP": 1294,
+            "TN": 7119,
+            "FP": 330,
+            "FN": 1026
+        },
+        "feature_importances": {
+            "Age": 0.0584083673904509,
+            "Education-num": 0.16647077559459328,
+            "Sex": 0.013657962962570701,
+            "Capital-gain": 0.21267516248535845,
+            "Capital-loss": 0.0536460726792198,
+            "Hours-per-week": 0.05053736211670493,
+            "Occupation_Exec-managerial": 0.027193100291653845,
+            "Occupation_Other-service": 0.007613216643759516,
+            "Occupation_Prof-specialty": 0.02621597149647053,
+            "Workclass_Self-emp-inc": 0.0038206745820008074,
+            "Marital-status_Divorced": 0.004357593558169065,
+            "Marital-status_Married-civ-spouse": 0.18775720574391325,
+            "Marital-status_Never-married": 0.04449784502845109,
+            "Relationship_Husband": 0.10146047629541757,
+            "Relationship_Not-in-family": 0.011243299533847962,
+            "Relationship_Own-child": 0.009976526377283102,
+            "Relationship_Unmarried": 0.004063730606256673,
+            "Relationship_Wife": 0.0164046566138786
+        },
+        "best_params": {
+            "max_depth": 10,
+            "max_features": "log2",
+            "min_samples_split": 4,
+            "n_estimators": 250
+        }
+    }
+}

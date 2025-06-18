@@ -41,7 +41,7 @@ def download_deepcovid(path):
 def download_adult(path):
     base = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/"
     files = ["adult.data", "adult.test"]
-    dest = os.path.join(path, "AdultCensus")
+    dest = os.path.join(path, "AdultIncome")
     os.makedirs(dest, exist_ok=True)
 
     for fname in files:

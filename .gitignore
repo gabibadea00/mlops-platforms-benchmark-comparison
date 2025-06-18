@@ -8,7 +8,13 @@ source/venv/
 venv/
 
 # Ignore MLRUNS folders
-source/mlops/AdultCensus/mlruns/
-source/mlops/Deepcovid/mlruns/
+source/mlops/AdultIncome/MLflow/mlruns/
+source/mlops/Deepcovid/MLflow/mlruns/
+
+source/mlops/AdultIncome/Metaflow/.metaflow
+source/mlops/AdultIncome/Metaflow/metaflow_card_cache
+
+source/mlops/Deepcovid/Metaflow/.metaflow
+source/mlops/Deepcovid/Metaflow/metaflow_card_cache
 
 .DS_Store
