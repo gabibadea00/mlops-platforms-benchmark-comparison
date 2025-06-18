@@ -17,4 +17,9 @@ source/mlops/AdultIncome/Metaflow/metaflow_card_cache
 source/mlops/Deepcovid/Metaflow/.metaflow
 source/mlops/Deepcovid/Metaflow/metaflow_card_cache
 
+source/mlops/AdultCensus/mlruns/
+
+source/mlops/AdultCensus/Metaflow/.metaflow
+source/mlops/AdultCensus/Metaflow/metaflow_card_cache
+
 .DS_Store
