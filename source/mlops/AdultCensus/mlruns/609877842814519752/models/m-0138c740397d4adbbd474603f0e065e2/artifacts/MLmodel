@@ -1,0 +1,32 @@
+artifact_path: file:///Users/dmonea/Desktop/research/roedunet/mlops-platforms-benchmark-/source/mlops/AdultCensus/mlruns/609877842814519752/models/m-0138c740397d4adbbd474603f0e065e2/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.10.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.0
+is_signature_from_type_hint: false
+mlflow_version: 3.1.0
+model_id: m-0138c740397d4adbbd474603f0e065e2
+model_size_bytes: 77743991
+model_uuid: m-0138c740397d4adbbd474603f0e065e2
+prompts: null
+run_id: b1c6a680ddeb49ec952c3dfef26f86cb
+saved_input_example_info:
+  artifact_path: input_example.json
+  serving_input_path: serving_input_example.json
+  type: ndarray
+signature:
+  inputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1, 18]}}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-06-17 18:10:46.431558'

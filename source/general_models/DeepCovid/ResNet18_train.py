@@ -69,6 +69,9 @@ def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, schedul
         "test_acc": []
     }
 
+    print(f"Using device {device}!")
+
+    model = model.to(device)
     for epoch in range(num_epochs):
         print(f'Epoch {epoch+1}/{num_epochs}\n' + '-'*10)
         for phase in ['train','test']:
@@ -178,7 +181,12 @@ def main():
     args = parse_args()
     transforms_ = build_transforms()
     dataloaders, dataset_sizes, class_names = load_data(args.dataset_path, transforms_, args.batch_size, args.num_workers)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device_name = "cpu"
+    if torch.cuda.is_available():
+        device_name = "cuda"
+    elif torch.mps.is_available():
+        device_name = "mps"
+    device = torch.device(device_name)
     print(f"Using device: {device}")
 
     model = build_model().to(device)

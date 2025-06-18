@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/dmonea/Desktop/research/roedunet/mlops-platforms-benchmark-/source/mlops/AdultCensus/mlruns/609877842814519752/b1c6a680ddeb49ec952c3dfef26f86cb/artifacts
+end_time: 1750183852132
+entry_point_name: ''
+experiment_id: '609877842814519752'
+lifecycle_stage: active
+run_id: b1c6a680ddeb49ec952c3dfef26f86cb
+run_name: Baseline_RF
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1750183845124
+status: 3
+tags: []
+user_id: dmonea

@@ -1,0 +1,10 @@
+artifact_location: file:///Users/dmonea/Desktop/research/roedunet/mlops-platforms-benchmark-/source/mlops/AdultCensus/mlruns/609877842814519752/models/m-d293ace930ad4d7086d4d873b670ca40/artifacts
+creation_timestamp: 1750183869560
+experiment_id: '609877842814519752'
+last_updated_timestamp: 1750183870792
+model_id: m-d293ace930ad4d7086d4d873b670ca40
+model_type: null
+name: best_estimator
+source_run_id: 02c4e682d7194952bcf27083898da5e7
+status: 2
+status_message: null
