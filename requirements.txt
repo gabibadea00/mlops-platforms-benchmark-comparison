@@ -17,3 +17,6 @@ mlflow
 urllib3==1.26.20
 metaflow
 pylint
+zenml
+zenml[server]==0.83.0
+tf-keras

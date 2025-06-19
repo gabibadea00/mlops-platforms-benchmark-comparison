@@ -11,15 +11,19 @@ venv/
 source/mlops/AdultIncome/MLflow/mlruns/
 source/mlops/Deepcovid/MLflow/mlruns/
 
+source/mlops/AdultCensus/mlruns/
+
+# Ignore .metaflow folders
 source/mlops/AdultIncome/Metaflow/.metaflow
 source/mlops/AdultIncome/Metaflow/metaflow_card_cache
-
 source/mlops/Deepcovid/Metaflow/.metaflow
 source/mlops/Deepcovid/Metaflow/metaflow_card_cache
 
-source/mlops/AdultCensus/mlruns/
-
 source/mlops/AdultCensus/Metaflow/.metaflow
 source/mlops/AdultCensus/Metaflow/metaflow_card_cache
+
+# Ignore .metaflow folders
+source/mlops/AdultIncome/ZenMl/.zen
+source/mlops/Deepcovid/ZenMl/.zen
 
 .DS_Store
