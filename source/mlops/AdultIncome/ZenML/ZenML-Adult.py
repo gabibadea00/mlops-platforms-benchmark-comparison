@@ -17,15 +17,6 @@ def load_dataset(path: str) -> pd.DataFrame:
 
 @step
 def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
-    # transformări
-    df = pd.concat([...], axis=1)  # cum ai avut înainte
-    df['Sex'] = df['Sex'].map({'Male': 1, 'Female': 0})
-    df['Earning_potential'] = df['Earning_potential'].str.contains('>50K').astype(int)
-    df = df.drop('fnlwgt', axis=1)
-    return df
-
-@step
-def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     df = pd.concat([df.drop('Occupation', axis=1),
                     pd.get_dummies(df['Occupation']).add_prefix('Occupation_')], axis=1)
     df = pd.concat([df.drop('Workclass', axis=1),
