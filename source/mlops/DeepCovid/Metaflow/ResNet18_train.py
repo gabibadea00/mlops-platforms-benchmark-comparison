@@ -1,4 +1,4 @@
-from metaflow import FlowSpec, step, card, current, Parameter
+from metaflow import FlowSpec, step, card, current, Parameter, conda_base, conda
 from metaflow.cards import Markdown, VegaChart, Image, Artifact, Table, ProgressBar
 import os, copy, time, argparse, json
 import torch, torch.nn as nn, torch.optim as optim
@@ -10,6 +10,13 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from torchvision.models import ResNet18_Weights
 
+@conda_base(packages={
+    "pytorch::pytorch": "2.0.1",
+    "pytorch::torchvision": "0.15.2",
+    "matplotlib": "3.7.1",
+    "numpy": "1.23.*",
+    "scikit-learn": "1.4.2",
+})
 class CovidResNetFlow(FlowSpec):
     batch_size = Parameter('batch_size', type=int, default=20)
     epochs = Parameter('epochs', type=int, default=10)
@@ -17,16 +24,22 @@ class CovidResNetFlow(FlowSpec):
     momentum = Parameter('momentum', type=float, default=0.9)
     dataset_path = Parameter('dataset-path', default='./../../../../datasets/DeepCovid/data_upload_v3')
 
+    @card(type='blank', id='train_card', refresh_interval=1)
+    @conda(packages={"pytorch::pytorch":"2.0.1","pytorch::torchvision":"0.15.2","matplotlib":"3.7.1","numpy":"1.23.*"})
     @step
     def start(self):
-        device_name = "cpu"
-        if torch.cuda.is_available():
-            device_name = "cuda"
-        elif torch.mps.is_available():
-            device_name = "mps"
-        device = torch.device(device_name)
+        
+        # print("PyTorch version:", torch.__version__)
+        # if torch.cuda.is_available():
+        #     device = torch.device("cuda")
+        # elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        #     device = torch.device("mps")
+        # else:
+        #     device = torch.device("cpu")
+        device = torch.device("cpu")
         print(f"Using device: {device}")
         self.device = device
+        
         transforms_ = {
             'train': transforms.Compose([
                 transforms.Resize(224),
@@ -55,6 +68,7 @@ class CovidResNetFlow(FlowSpec):
         self.next(self.train)
 
     @card(type='blank', id='train_card', refresh_interval=1)
+    @conda(packages={"pytorch::pytorch":"2.0.1","pytorch::torchvision":"0.15.2","matplotlib":"3.7.1","numpy":"1.23.*"})
     @step
     def train(self):
         model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
@@ -116,6 +130,7 @@ class CovidResNetFlow(FlowSpec):
         self.next(self.evaluate)
 
     @card(type='blank', id='eval_card')
+    @conda(packages={"pytorch::pytorch":"2.0.1","pytorch::torchvision":"0.15.2","matplotlib":"3.7.1","numpy":"1.23.*"})
     @step
     def evaluate(self):
         model, dl = self.model, self.dl['test']
@@ -150,6 +165,8 @@ class CovidResNetFlow(FlowSpec):
         self.roc_auc = roc_auc
         self.next(self.end)
 
+
+    @conda(packages={"pytorch::pytorch":"2.0.1","pytorch::torchvision":"0.15.2","matplotlib":"3.7.1","numpy":"1.23.*"})
     @step
     def end(self):
         with open("metrics.json","w") as f:
