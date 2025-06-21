@@ -21,17 +21,17 @@
     python3 MetaFlow-Adult.py run --with card
     # http://localhost:8324 
     python3 MetaFlow-Adult.py card server
-    python3 MetaFlow-Adult.py card view start
+    # python3 MetaFlow-Adult.py card view start
 ```
 
 ## MetaFlow - Deep Covid dataset
 
 ```bash
     python3 ResNet18_train.py --environment=conda run --with card
-    python3 ResNet18_train.py run --with card
+    # python3 ResNet18_train.py run --with card
     # http://localhost:8324 
-    python3 ResNet18_train.py card server
-    python3 ResNet18_train.py card view start
+    python3 ResNet18_train.py --environment=conda card server
+    # python3 ResNet18_train.py --environment=conda card view start
 ```
 
 ## ZenML - Adult Income dataset
