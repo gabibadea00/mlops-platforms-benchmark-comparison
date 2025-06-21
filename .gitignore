@@ -1,5 +1,6 @@
 # Ignore .DS_Store
 **/.DS_Store
+**/__pycache__
 
 # Ignore datasets
 datasets/CropNet/
@@ -26,6 +27,8 @@ source/mlops/Deepcovid/Metaflow/metaflow_card_cache
 source/mlops/AdultCensus/Metaflow/.metaflow
 source/mlops/AdultCensus/Metaflow/metaflow_card_cache
 
+source/mlops/BertSum/MetaFlow/src/.metaflow
+
 # Ignore .metaflow folders
 source/mlops/AdultIncome/ZenMl/.zen
 source/mlops/Deepcovid/ZenMl/.zen
@@ -34,12 +37,16 @@ source/mlops/Deepcovid/ZenMl/.zen
 source/general_models/BertSum/bert_data/*
 source/general_models/BertSum/src/models/*
 source/general_models/BertSum/temp/
+source/general_models/BertSum/urls/
 source/mlops/BertSum/MLFlow/bert_data/*
 source/mlops/BertSum/MLFlow/src/models/*
 source/mlops/BertSum/MLFlow/temp/
+source/mlops/BertSum/MLFlow/urls/
 source/mlops/BertSum/MetaFlow/bert_data/*
 source/mlops/BertSum/MetaFlow/src/models/*
 source/mlops/BertSum/MetaFlow/temp/
+source/mlops/BertSum/MetaFlow/urls/
 source/mlops/BertSum/ZenML/bert_data/*
 source/mlops/BertSum/ZenML/src/models/*
 source/mlops/BertSum/ZenML/temp/
+source/mlops/BertSum/ZenML/urls/
