@@ -1,3 +1,6 @@
+# Ignore .DS_Store
+**/.DS_Store
+
 # Ignore datasets
 datasets/CropNet/
 datasets/SQuAD/
@@ -10,6 +13,7 @@ venv/
 # Ignore MLRUNS folders
 source/mlops/AdultIncome/MLflow/mlruns/
 source/mlops/Deepcovid/MLflow/mlruns/
+source/mlops/BertSum/MLFlow/src/mlruns/
 
 source/mlops/AdultCensus/mlruns/
 
@@ -26,4 +30,16 @@ source/mlops/AdultCensus/Metaflow/metaflow_card_cache
 source/mlops/AdultIncome/ZenMl/.zen
 source/mlops/Deepcovid/ZenMl/.zen
 
-.DS_Store
+# Ignore BERT dataset and models folders
+source/general_models/BertSum/bert_data/*
+source/general_models/BertSum/src/models/*
+source/general_models/BertSum/temp/
+source/mlops/BertSum/MLFlow/bert_data/*
+source/mlops/BertSum/MLFlow/src/models/*
+source/mlops/BertSum/MLFlow/temp/
+source/mlops/BertSum/MetaFlow/bert_data/*
+source/mlops/BertSum/MetaFlow/src/models/*
+source/mlops/BertSum/MetaFlow/temp/
+source/mlops/BertSum/ZenML/bert_data/*
+source/mlops/BertSum/ZenML/src/models/*
+source/mlops/BertSum/ZenML/temp/
