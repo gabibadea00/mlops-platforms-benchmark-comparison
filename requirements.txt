@@ -20,3 +20,4 @@ pylint
 zenml
 zenml[server]==0.83.0
 tf-keras
+gdown

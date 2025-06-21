@@ -37,6 +37,9 @@ python3 download_dataset.py -p ./../datasets -d deepcovid
 # Download Adult Income
 # https://github.com/mbeps/Adults_Income_Prediction/tree/main
 python3 download_dataset.py -p ./../datasets -d adult
+# Download BertSum dataset
+# https://github.com/nlpyang/BertSum/tree/master
+python3 download_dataset.py -p ./../datasets -d bert
 ```
 ### The resulting folder structure will look like:
 

@@ -4,6 +4,7 @@ import pandas as pd
 from argparse import ArgumentParser
 import tensorflow as tf
 import zipfile
+import gdown
 
 def parse_example(example_proto):
     return tf.io.parse_single_example(example_proto, {
@@ -81,19 +82,42 @@ def download_adult(path):
     print(f"✅ adult_combined.csv creat ({df.shape[0]} rânduri, {df.shape[1]} coloane)")
     return combined
 
+def download_bert(dest_path: str):
+    download_url = "https://drive.google.com/open?id=1x0d61LP9UAN389YN00z0Pv-7jQgirVg6"
+
+    # Download the ZIP file
+    zip_filename = os.path.join(dest_path, 'temp_download.zip')
+    print(f"Downloading ZIP file to: {zip_filename}")
+    zip_path = os.path.join(dest_path, 'temp_download.zip')
+    gdown.download(url=download_url, output=zip_path, quiet=False, fuzzy=True)
+
+    dest = os.path.join(dest_path, "BertSum")
+    os.makedirs(dest, exist_ok=True)
+
+    # Extract ZIP
+    print(f"Extracting ZIP contents to: {dest}")
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(dest)
+
+    # Remove the ZIP file
+    print(f"Deleting ZIP file: {zip_filename}")
+    os.remove(zip_path)
+
 def main(args):
     os.makedirs(args.path, exist_ok=True)
     if args.dataset.lower() == "deepcovid":
         download_deepcovid(args.path)
     elif args.dataset.lower() == "adult":
         download_adult(args.path)
+    elif args.dataset.lower() == "bert":
+        download_bert(args.path)
     else:
-        raise ValueError("Invalid dataset name! Options: adult, deepcovid")
+        raise ValueError("Invalid dataset name! Options: adult, bert, deepcovid")
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('-p', '--path', required=True)
     parser.add_argument('-d', '--dataset', required=True,
-                    choices=["deepcovid","adult"])
+                    choices=["deepcovid","adult", "bert"])
     args = parser.parse_args()
     main(args)
