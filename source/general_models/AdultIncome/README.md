@@ -9,4 +9,4 @@ Dive in to explore the nuances of income prediction and the factors that influen
 
 ## Run script 
 
-- python3 main.py
+- python3 adult-rf.py
