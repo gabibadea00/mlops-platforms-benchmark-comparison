@@ -35,18 +35,14 @@ source/mlops/Deepcovid/ZenMl/.zen
 
 # Ignore BERT dataset and models folders
 source/general_models/BertSum/bert_data/*
-source/general_models/BertSum/src/models/*
 source/general_models/BertSum/temp/
 source/general_models/BertSum/urls/
 source/mlops/BertSum/MLFlow/bert_data/*
-source/mlops/BertSum/MLFlow/src/models/*
 source/mlops/BertSum/MLFlow/temp/
 source/mlops/BertSum/MLFlow/urls/
 source/mlops/BertSum/MetaFlow/bert_data/*
-source/mlops/BertSum/MetaFlow/src/models/*
 source/mlops/BertSum/MetaFlow/temp/
 source/mlops/BertSum/MetaFlow/urls/
 source/mlops/BertSum/ZenML/bert_data/*
-source/mlops/BertSum/ZenML/src/models/*
 source/mlops/BertSum/ZenML/temp/
 source/mlops/BertSum/ZenML/urls/
