@@ -9,4 +9,4 @@ Dive in to explore the nuances of income prediction and the factors that influen
 
 ## Run script 
 
-- python3 adult-rf.py
+- python3 adult-rf.py --dataset_path ./../../../datasets/AdultIncome/adult_combined.csv

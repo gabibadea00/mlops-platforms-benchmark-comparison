@@ -12,6 +12,7 @@ from numpy import ndarray
 import mlflow, mlflow.sklearn
 from mlflow.models.signature import infer_signature
 
+import argparse
 
 def load_dataset(path: str) -> DataFrame:
     return pd.read_csv(path)
@@ -107,7 +108,12 @@ def main():
         silent=True
     )
     
-    df = load_dataset("./../../../../datasets/AdultIncome/adult_combined.csv")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset_path', required=True)
+    args = parser.parse_args()
+    df = load_dataset(args.dataset_path)
+    # df = load_dataset("./../../../../datasets/AdultIncome/adult_combined.csv")
+    
     df = preprocess_data(df)
     df = feature_selection(df, target='Earning_potential')
     X_train, X_test, y_train, y_test = split_data(df, target='Earning_potential')

@@ -46,3 +46,6 @@ source/mlops/BertSum/MetaFlow/urls/
 source/mlops/BertSum/ZenML/bert_data/*
 source/mlops/BertSum/ZenML/temp/
 source/mlops/BertSum/ZenML/urls/
+
+# Ignore Benchmark results
+benchmark_results/

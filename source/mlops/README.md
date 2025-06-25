@@ -3,7 +3,7 @@
 ## MLflow - Adult Income dataset
 
 ```bash
-    python3 MLflow-Adult.py
+    python3 MLflow-Adult.py --dataset_path ./../../../../datasets/AdultIncome/adult_combined.csv
 
     mlflow ui --host 127.0.0.1 --port 5001
 ```
