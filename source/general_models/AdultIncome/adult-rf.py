@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 import pandas as pd
-
+import numpy as np
+from typing import Tuple, Dict, List
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-from typing import Dict, List, Union, Tuple
-from pandas import DataFrame
-from numpy import ndarray
-
-import json
-from sklearn.metrics import classification_report, confusion_matrix
-
+from sklearn.metrics import classification_report, confusion_matrix, f1_score
 import argparse
+import json
 
-def load_dataset(path: str) -> DataFrame:
+def load_dataset(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
-def preprocess_data(df: DataFrame) -> DataFrame:
+def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     df = pd.concat([df.drop('Occupation', axis=1), pd.get_dummies(df['Occupation']).add_prefix('Occupation_')], axis=1)
     df = pd.concat([df.drop('Workclass', axis=1), pd.get_dummies(df['Workclass']).add_prefix('Workclass_')], axis=1)
     df = df.drop('Education', axis=1)
@@ -29,13 +25,13 @@ def preprocess_data(df: DataFrame) -> DataFrame:
     df = df.drop('fnlwgt', axis=1)
     return df
 
-def feature_selection(df: DataFrame, target: str = 'Earning_potential') -> DataFrame:
+def feature_selection(df: pd.DataFrame, target: str = 'Earning_potential') -> pd.DataFrame:
     correlations = df.corr()[target].abs().sort_values()
     num_cols_to_drop = int(0.8 * len(df.columns))
     cols_to_drop = correlations.iloc[:num_cols_to_drop].index
     return df.drop(cols_to_drop, axis=1)
 
-def split_data(df: DataFrame, target: str) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
+def split_data(df: pd.DataFrame, target: str) -> Tuple[np.ndarray, np.ndarray, pd.Series, pd.Series]:
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
     X_train = train_df.drop(target, axis=1)
     y_train = train_df[target]
@@ -43,44 +39,57 @@ def split_data(df: DataFrame, target: str) -> Tuple[ndarray, ndarray, ndarray, n
     y_test = test_df[target]
     scaler = StandardScaler()
     return scaler.fit_transform(X_train), scaler.transform(X_test), y_train, y_test
-    
-def train_rf(X_train, y_train, X_test, y_test, feature_names, label_map) -> Dict:
+
+def format_metrics(model, X_test, y_test):
+    preds = model.predict(X_test)
+    acc = model.score(X_test, y_test)
+    tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
+    tpr = tp / (tp + fn) if tp + fn > 0 else None
+    fpr = fp / (fp + tn) if fp + tn > 0 else None
+    f1 = f1_score(y_test, preds, pos_label=1)  # F1 pentru clasa pozitivă
+    report = classification_report(y_test, preds, output_dict=True)
+    return {
+        "accuracy": acc,
+        "tpr": tpr,
+        "fpr": fpr,
+        "f1_score": f1,
+        "confusion_matrix": {"TP": tp, "TN": tn, "FP": fp, "FN": fn},
+        "classification_report": report
+    }
+
+def train_rf(X_train, y_train, X_test, y_test):
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
-    return format_metrics(model, X_test, y_test, feature_names, label_map), model
-    
-def tune_rf(X_train, y_train, X_test, y_test, feature_names, label_map) -> Tuple[Dict, RandomForestClassifier]:
+    return format_metrics(model, X_test, y_test), model
+
+def tune_rf(X_train, y_train, X_test, y_test):
     param_grid = {
         'n_estimators': [50, 100, 250],
         'max_depth': [5, 10, 30, None],
         'min_samples_split': [2, 4],
         'max_features': ['sqrt', 'log2']
     }
-    grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, verbose=0, n_jobs=-1)
-    grid_search.fit(X_train, y_train)
-    metrics = format_metrics(grid_search.best_estimator_, X_test, y_test, feature_names, label_map)
-    metrics["best_params"] = grid_search.best_params_
-    return metrics, grid_search.best_estimator_
+    gs = GridSearchCV(RandomForestClassifier(random_state=42),
+                      param_grid, n_jobs=-1, verbose=0)
+    gs.fit(X_train, y_train)
+    metrics = format_metrics(gs.best_estimator_, X_test, y_test)
+    metrics["best_params"] = gs.best_params_
+    return metrics
 
-def format_metrics(model, X_test, y_test, feature_names: List[str], label_map: Dict[int, str]) -> Dict:
-    preds = model.predict(X_test)
-    report_raw = classification_report(
-        y_test, preds, output_dict=True,
-        target_names=[label_map[0], label_map[1]]
-    )
-    accuracy = model.score(X_test, y_test)
-    tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
-    importances = dict(zip(feature_names, model.feature_importances_.tolist()))
-    return {
-        "accuracy": accuracy,
-        "classification_report": report_raw,
-        "confusion_matrix": {"TP": int(tp), "TN": int(tn), "FP": int(fp), "FN": int(fn)},
-        "feature_importances": importances
-    }
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_path', required=True)
+    parser.add_argument('--output_json', default="model_metrics.json")
     args = parser.parse_args()
 
     df = load_dataset(args.dataset_path)
@@ -92,22 +101,23 @@ def main():
 
     X_train, X_test, y_train, y_test = split_data(df, 'Earning_potential')
 
-    print("👉 Training baseline Random Forest...")
-    initial_metrics, initial_model = train_rf(X_train, y_train, X_test, y_test, feature_names, label_map)
-    print(json.dumps(initial_metrics, indent=2))
+    # Train
+    initial_metrics, _ = train_rf(X_train, y_train, X_test, y_test)
+    # Tune
+    tuned_metrics = tune_rf(X_train, y_train, X_test, y_test)
 
-    print("\n🔧 Hyperparameter tuning Random Forest...")
-    tuned_metrics, tuned_model = tune_rf(X_train, y_train, X_test, y_test, feature_names, label_map)
-    print(json.dumps(tuned_metrics, indent=2))
-
-    print("\n📝 Model specification:")
-    model_spec = {
-        "input_features": feature_names,
-        "n_input_features": len(feature_names),
+    result = {
+        "dataset": args.dataset_path,
+        "feature_names": feature_names,
         "label_map": label_map,
-        "final_model": "tuned RandomForest"
+        "initial_rf": initial_metrics,
+        "tuned_rf": tuned_metrics,
     }
-    print(json.dumps(model_spec, indent=2))
+
+    with open(args.output_json, "w") as f:
+        json.dump(result, f, indent=2, cls=NpEncoder)
+
+    print(f"✅ Metrice salvate în '{args.output_json}'")
 
 if __name__ == "__main__":
     main()

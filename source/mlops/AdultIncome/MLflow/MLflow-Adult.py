@@ -6,7 +6,9 @@ from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import argparse
+import json
 
 def load_and_preprocess(path):
     df = pd.read_csv(path)
@@ -29,57 +31,56 @@ def split(df):
     sc = StandardScaler().fit(X_tr)
     return sc.transform(X_tr), sc.transform(X_te), y_tr, y_te
 
-def evaluate(model_uri, X_te, y_te, run_name):
-    eval_df = pd.DataFrame(X_te, columns=[f"x{i}" for i in range(X_te.shape[1])])
-    eval_df['target'] = y_te.values
-    
-    result = mlflow.evaluate(
-        model=model_uri,
-        data=eval_df,
-        targets='target',
-        model_type='classifier',
-        evaluators=None
-    )
-    
-    metrics = result.metrics  # dictionary of all metrics
-    
-    print(f"✅ Evaluation results for '{run_name}':")
-    for name, val in metrics.items():
-        # val may be numeric or more complex; convert to float if possible
-        try:
-            formatted = f"{float(val):.4f}"
-        except Exception:
-            formatted = str(val)
-        print(f"  • {name}: {formatted}")
+def extract_main_metrics(y_true, y_pred):
+    acc = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    tpr = tp / (tp + fn) if tp + fn > 0 else None
+    fpr = fp / (fp + tn) if fp + tn > 0 else None
+    return {"accuracy": acc, "f1_score": f1, "tpr": tpr, "fpr": fpr}
+
+def evaluate_sklearn(model, X_te, y_te):
+    y_pred = model.predict(X_te)
+    return extract_main_metrics(y_te, y_pred)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_path', required=True)
+    parser.add_argument('--output_json', default="model_metrics.json")
     args = parser.parse_args()
 
     df = load_and_preprocess(args.dataset_path)
     X_tr, X_te, y_tr, y_te = split(df)
 
     mlflow.set_experiment("AdultIncome_RF")
-    mlflow.sklearn.autolog()
+    results = {}
 
-    with mlflow.start_run(run_name="Baseline_RF"):
+    # Baseline
+    with mlflow.start_run(run_name="Baseline_RF") as run:
         baseline = RandomForestClassifier(random_state=42)
         baseline.fit(X_tr, y_tr)
-        mlflow.sklearn.log_model(baseline, "model", signature=infer_signature(X_tr, baseline.predict(X_tr)))
-        run_id = mlflow.active_run().info.run_id
+        mlflow.sklearn.log_model(baseline, "model",
+                                 signature=infer_signature(X_tr, baseline.predict(X_tr)))
+    metrics_base = evaluate_sklearn(baseline, X_te, y_te)
+    results['initial_rf'] = metrics_base
 
-    evaluate(f"runs:/{run_id}/model", X_te, y_te, "Baseline_RF")
-
+    # Tuned
     param_grid = {'n_estimators':[50,100], 'max_depth':[5,10]}
-    with mlflow.start_run(run_name="Tuned_RF"):
+    with mlflow.start_run(run_name="Tuned_RF") as run:
         gs = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=3)
         gs.fit(X_tr, y_tr)
         best = gs.best_estimator_
-        mlflow.sklearn.log_model(best, "model", signature=infer_signature(X_tr, best.predict(X_tr)))
-        run_id2 = mlflow.active_run().info.run_id
+        mlflow.sklearn.log_model(best, "model",
+                                 signature=infer_signature(X_tr, best.predict(X_tr)))
+    metrics_tuned = evaluate_sklearn(best, X_te, y_te)
+    results['tuned_rf'] = metrics_tuned
+    results['tuned_rf']['best_params'] = gs.best_params_
 
-    evaluate(f"runs:/{run_id2}/model", X_te, y_te, "Tuned_RF")
+    # Save to JSON
+    with open(args.output_json, "w") as f:
+        json.dump(results, f, indent=2)
+
+    print(f"✅ Metricile au fost salvate în '{args.output_json}'")
 
 if __name__=="__main__":
     main()
