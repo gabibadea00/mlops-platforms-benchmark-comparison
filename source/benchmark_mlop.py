@@ -25,7 +25,7 @@ MODELS = {
 ARTIFACT_DIRS = {
     "mlflow": "mlruns",
     "metaflow": ".metaflow",
-    # "zenml": ".zenml",
+    "zenml": ".zenml",
 }
 
 def count_changes(base, mod):
@@ -44,24 +44,18 @@ def run_cmd(cmd, out_dir):
     with open(os.path.join(out_dir, "stderr.txt"), "w") as f: f.write(proc.stderr)
     return {"duration": duration, "success": proc.returncode == 0}
 
-def collect_and_move_artifacts(src, dst):
-    if os.path.isdir(src):
-        shutil.move(src, os.path.join(dst, os.path.basename(src)))
-    else:
-        for fname in ("metrics.json", "model_metrics.json", "metrics.json"):
-            if os.path.exists(fname):
-                os.makedirs(dst, exist_ok=True)
-                shutil.move(fname, os.path.join(dst, fname))
-
 def count_artifacts(path):
-    count = size = 0
+    total_count = 0
+    total_size = 0
     if os.path.isdir(path):
         for root, _, files in os.walk(path):
-            count += len(files)
+            total_count += len(files)
             for f in files:
-                try: size += os.path.getsize(os.path.join(root, f))
-                except: pass
-    return {"count": count, "size_bytes": size}
+                try:
+                    total_size += os.path.getsize(os.path.join(root, f))
+                except OSError:
+                    pass
+    return {"count": total_count, "size_bytes": total_size}
 
 def remove_artifacts(path):
     if os.path.isdir(path):
@@ -70,6 +64,7 @@ def remove_artifacts(path):
 def main():
     results = {}
     base_output = "benchmark_results"
+
     for model, cfg in MODELS.items():
         print(f"== Benchmark {model}")
         model_res = {}
@@ -82,17 +77,14 @@ def main():
             print(f"-- {fw}")
             run_dir = os.path.join(base_output, model, fw)
             entry = run_cmd(cmd, run_dir)
+
             entry["code_changes"] = count_changes(cfg["baseline_script"], cfg["mlops_scripts"][fw])
-            src_art = ARTIFACT_DIRS.get(fw, "")
-            entry["artifacts_before"] = count_artifacts(src_art)
 
-            collect_and_move_artifacts(src_art, run_dir)
+            art_dir = ARTIFACT_DIRS.get(fw, "")
+            entry["artifacts_before"] = count_artifacts(art_dir)
 
-            moved_path = os.path.join(run_dir, os.path.basename(src_art))
-            entry["artifacts_after"] = count_artifacts(moved_path)
+            remove_artifacts(art_dir)
 
-            # cleanup moved artifacts under project root
-            remove_artifacts(src_art)
             model_res[fw] = entry
 
         results[model] = model_res
@@ -101,7 +93,9 @@ def main():
     with open(os.path.join(base_output, "benchmark_results.json"), "w") as f:
         json.dump(results, f, indent=2)
 
-    print("✅ Benchmark complet - rezultate în folderul 'benchmark_results/'")
+    print("✅ Benchmark complet. Vezi 'benchmark_results/benchmark_results.json'")
+    for fw, art in ARTIFACT_DIRS.items():
+        print(f"⚠️ Artefactele pentru {fw} au fost șterse: {art}")
 
 if __name__ == "__main__":
     main()
