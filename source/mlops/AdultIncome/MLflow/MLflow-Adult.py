@@ -1,124 +1,85 @@
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import numpy as np
-
+import mlflow
+import mlflow.sklearn
+from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-from typing import Dict, List, Union, Tuple
-from pandas import DataFrame
-from numpy import ndarray
-import mlflow, mlflow.sklearn
-from mlflow.models.signature import infer_signature
-
 import argparse
 
-def load_dataset(path: str) -> DataFrame:
-    return pd.read_csv(path)
-
-def preprocess_data(df: DataFrame) -> DataFrame:
-    df = pd.concat([df.drop('Occupation', axis=1), pd.get_dummies(df['Occupation']).add_prefix('Occupation_')], axis=1)
-    df = pd.concat([df.drop('Workclass', axis=1), pd.get_dummies(df['Workclass']).add_prefix('Workclass_')], axis=1)
-    df = df.drop('Education', axis=1)
-    df = pd.concat([df.drop('Marital-status', axis=1), pd.get_dummies(df['Marital-status']).add_prefix('Marital-status_')], axis=1)
-    df = pd.concat([df.drop('Relationship', axis=1), pd.get_dummies(df['Relationship']).add_prefix('Relationship_')], axis=1)
-    df = pd.concat([df.drop('Race', axis=1), pd.get_dummies(df['Race']).add_prefix('Race_')], axis=1)
-    df = pd.concat([df.drop('Native-country', axis=1), pd.get_dummies(df['Native-country']).add_prefix('Native-country_')], axis=1)
-    df['Sex'] = df['Sex'].apply(lambda x: 1 if x == 'Male' else 0)
+def load_and_preprocess(path):
+    df = pd.read_csv(path)
+    df_base = df.drop(['Occupation','Workclass','Marital-status','Relationship','Race','Native-country','Education','fnlwgt'], axis=1)
+    occ = pd.get_dummies(df['Occupation'], prefix='Occupation')
+    wc = pd.get_dummies(df['Workclass'], prefix='Workclass')
+    ms = pd.get_dummies(df['Marital-status'], prefix='Marital-status')
+    rel = pd.get_dummies(df['Relationship'], prefix='Relationship')
+    race = pd.get_dummies(df['Race'], prefix='Race')
+    nat = pd.get_dummies(df['Native-country'], prefix='Native-country')
+    df = pd.concat([df_base, occ, wc, ms, rel, race, nat], axis=1)
+    df['Sex'] = df['Sex'].map({'Male':1,'Female':0})
     df['Earning_potential'] = df['Earning_potential'].apply(lambda x: 1 if '>50K' in x else 0)
-    df = df.drop('fnlwgt', axis=1)
     return df
 
-def feature_selection(df: DataFrame, target: str = 'Earning_potential') -> DataFrame:
-    correlations = df.corr()[target].abs().sort_values()
-    num_cols_to_drop = int(0.8 * len(df.columns))
-    cols_to_drop = correlations.iloc[:num_cols_to_drop].index
-    return df.drop(cols_to_drop, axis=1)
+def split(df):
+    X = df.drop('Earning_potential', axis=1)
+    y = df['Earning_potential']
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+    sc = StandardScaler().fit(X_tr)
+    return sc.transform(X_tr), sc.transform(X_te), y_tr, y_te
 
-def split_data(df: DataFrame, target: str) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
-    train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
-    X_train = train_df.drop(target, axis=1)
-    y_train = train_df[target]
-    X_test = test_df.drop(target, axis=1)
-    y_test = test_df[target]
-    scaler = StandardScaler()
-    return scaler.fit_transform(X_train), scaler.transform(X_test), y_train, y_test
-
-def train_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray) -> None:
-    with mlflow.start_run(run_name="Baseline_RF"):
-        model = RandomForestClassifier()
-        model.fit(X_train, y_train)
-        acc = model.score(X_test, y_test)
-
-        mlflow.log_param("model_type", "RandomForest")
-        mlflow.log_metric("accuracy", acc)
-
-        # Infer signature și input example
-        input_example = pd.DataFrame(X_train).iloc[:5]
-        signature = infer_signature(X_train, model.predict(X_train))
-
-        mlflow.sklearn.log_model(
-            model,
-            name="random_forest_model",
-            input_example=input_example,
-            signature=signature
-        )
-        print(f"Initial RF Accuracy: {acc:.4f}")
-
-def tune_rf(X_train: ndarray, y_train: ndarray, X_test: ndarray, y_test: ndarray) -> None:
-    param_grid: Dict[str, List[Union[int, str, None]]] = {
-        'n_estimators': [50, 100, 250],
-        'max_depth': [5, 10, 30, None],
-        'min_samples_split': [2, 4],
-        'max_features': ['sqrt', 'log2']
-    }
-
-    with mlflow.start_run(run_name="Tuned_RF"):
-        grid_search = GridSearchCV(RandomForestClassifier(), param_grid, verbose=2, n_jobs=-1, cv=3)
-        grid_search.fit(X_train, y_train)
-
-        best_model = grid_search.best_estimator_
-        acc = best_model.score(X_test, y_test)
-
-        mlflow.log_params(grid_search.best_params_)
-        mlflow.log_metric("accuracy", acc)
-
-        # Infer signature și input example
-        input_example = pd.DataFrame(X_train).iloc[:5]
-        signature = infer_signature(X_train, best_model.predict(X_train))
-
-        mlflow.sklearn.log_model(
-            best_model,
-            name="best_random_forest_model",
-            input_example=input_example,
-            signature=signature
-        )
-
-        print("Best RF params:", grid_search.best_params_)
-        print(f"Tuned RF Accuracy: {acc:.4f}")
-
-def main():
-    mlflow.set_experiment("Adult Income Prediction")
-    mlflow.sklearn.autolog(
-        log_input_examples=True,
-        log_model_signatures=True,
-        log_datasets=False,
-        max_tuning_runs=3,
-        silent=True
+def evaluate(model_uri, X_te, y_te, run_name):
+    eval_df = pd.DataFrame(X_te, columns=[f"x{i}" for i in range(X_te.shape[1])])
+    eval_df['target'] = y_te.values
+    
+    result = mlflow.evaluate(
+        model=model_uri,
+        data=eval_df,
+        targets='target',
+        model_type='classifier',
+        evaluators=None
     )
     
+    metrics = result.metrics  # dictionary of all metrics
+    
+    print(f"✅ Evaluation results for '{run_name}':")
+    for name, val in metrics.items():
+        # val may be numeric or more complex; convert to float if possible
+        try:
+            formatted = f"{float(val):.4f}"
+        except Exception:
+            formatted = str(val)
+        print(f"  • {name}: {formatted}")
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_path', required=True)
     args = parser.parse_args()
-    df = load_dataset(args.dataset_path)
-    # df = load_dataset("./../../../../datasets/AdultIncome/adult_combined.csv")
-    
-    df = preprocess_data(df)
-    df = feature_selection(df, target='Earning_potential')
-    X_train, X_test, y_train, y_test = split_data(df, target='Earning_potential')
-    train_rf(X_train, y_train, X_test, y_test)
-    tune_rf(X_train, y_train, X_test, y_test)
 
-if __name__ == "__main__":
+    df = load_and_preprocess(args.dataset_path)
+    X_tr, X_te, y_tr, y_te = split(df)
+
+    mlflow.set_experiment("AdultIncome_RF")
+    mlflow.sklearn.autolog()
+
+    with mlflow.start_run(run_name="Baseline_RF"):
+        baseline = RandomForestClassifier(random_state=42)
+        baseline.fit(X_tr, y_tr)
+        mlflow.sklearn.log_model(baseline, "model", signature=infer_signature(X_tr, baseline.predict(X_tr)))
+        run_id = mlflow.active_run().info.run_id
+
+    evaluate(f"runs:/{run_id}/model", X_te, y_te, "Baseline_RF")
+
+    param_grid = {'n_estimators':[50,100], 'max_depth':[5,10]}
+    with mlflow.start_run(run_name="Tuned_RF"):
+        gs = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=3)
+        gs.fit(X_tr, y_tr)
+        best = gs.best_estimator_
+        mlflow.sklearn.log_model(best, "model", signature=infer_signature(X_tr, best.predict(X_tr)))
+        run_id2 = mlflow.active_run().info.run_id
+
+    evaluate(f"runs:/{run_id2}/model", X_te, y_te, "Tuned_RF")
+
+if __name__=="__main__":
     main()
