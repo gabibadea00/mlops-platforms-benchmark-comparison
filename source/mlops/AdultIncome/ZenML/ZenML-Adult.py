@@ -1,15 +1,14 @@
 import pandas as pd
 import numpy as np
+import json, joblib, datetime
+from typing import Tuple, Dict, List, Any
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix
-from typing import Dict, List, Tuple, Any
-import json
-import joblib
-import datetime
-
 from zenml import step, pipeline
+
+LABEL_MAP = {0: "<=50K", 1: ">50K"}
 
 @step
 def load_dataset(path: str) -> pd.DataFrame:
@@ -59,12 +58,29 @@ def split_data(df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np
     y_test = test[target].values
     return X_train, X_test, y_train, y_test
 
+def compute_metrics(model, X_te, y_te) -> Dict[str, float]:
+    preds = model.predict(X_te)
+    tn, fp, fn, tp = confusion_matrix(y_te, preds).ravel()
+    tpr = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    # F1 pentru clasa pozitivă (1)
+    report = classification_report(y_te, preds, output_dict=True)
+    f1 = report["1"]["f1-score"]
+    acc = model.score(X_te, y_te)
+    # Return dict explicit
+    return {
+        "accuracy": float(acc),
+        "f1_score": float(f1),
+        "tpr": float(tpr),
+        "fpr": float(fpr)
+    }
+
 @step
 def train_rf(
     X_train: np.ndarray, X_test: np.ndarray,
     y_train: np.ndarray, y_test: np.ndarray,
     feature_names: List[str], label_map: Dict[int, str]
-) -> Tuple[Dict, RandomForestClassifier]:
+) -> Tuple[Dict, RandomForestClassifier, Dict]:
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
@@ -72,19 +88,22 @@ def train_rf(
                                    target_names=[label_map[0], label_map[1]])
     tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
     importances = dict(zip(feature_names, model.feature_importances_.tolist()))
+    
+    metrics = compute_metrics(model, X_test, y_test)
+    
     return ({
         "accuracy": model.score(X_test, y_test),
         "classification_report": report,
         "confusion_matrix": {"TP": int(tp), "TN": int(tn), "FP": int(fp), "FN": int(fn)},
         "feature_importances": importances
-    }, model)
+    }, model, metrics)
 
 @step
 def tune_rf(
     X_train: np.ndarray, X_test: np.ndarray,
     y_train: np.ndarray, y_test: np.ndarray,
     feature_names: List[str], label_map: Dict[int, str]
-) -> Tuple[Dict, RandomForestClassifier]:
+) -> Tuple[Dict, RandomForestClassifier, Dict]:
     param_grid = {
         'n_estimators': [50, 100],
         'max_depth': [5, 10, None],
@@ -99,31 +118,38 @@ def tune_rf(
                                    target_names=[label_map[0], label_map[1]])
     tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
     importances = dict(zip(feature_names, best.feature_importances_.tolist()))
+    
+    metrics = compute_metrics(best, X_test, y_test)
+    metrics["best_params"] = grid.best_params_
+    
     return ({
         "accuracy": best.score(X_test, y_test),
         "classification_report": report,
         "confusion_matrix": {"TP": int(tp), "TN": int(tn), "FP": int(fp), "FN": int(fn)},
         "feature_importances": importances,
         "best_params": grid.best_params_
-    }, best)
-
+    }, best, metrics)
 
 @step
-def save_artifacts(metrics: Dict[str, Any], model: RandomForestClassifier, model_type: str) -> None:
+def save_metrics(
+        base_metrics: Dict[str, float],
+        tuned_metrics: Dict[str, Any]
+    ) -> None:
+    out = {"initial_rf": base_metrics, "tuned_rf": tuned_metrics}
     with open("model_metrics.json", "w") as f:
-        json.dump(metrics, f, indent=4)
-    if model_type == "tuned":
-        joblib.dump(model, "final_rf_model.joblib")
-    else:
-        joblib.dump(model, "base_rf_model.joblib")
+        json.dump(out, f, indent=2)
+    print("✅ Saved model_metrics.json")
+
 @step
-def save_artifacts(metrics: Dict[str, Any],
-                   model: RandomForestClassifier,
-                   model_type: str) -> None:
+def save_artifacts(
+        metrics: Dict[str, Any],
+        model: RandomForestClassifier,
+        model_type: str
+    ) -> None:
 
     try:
         with open("model_history.json", "r", encoding="utf-8") as f:
-            history = json.load(f)  # așteptăm un list de dict-uri
+            history = json.load(f)
             if not isinstance(history, list):
                 history = []
     except FileNotFoundError:
@@ -139,37 +165,41 @@ def save_artifacts(metrics: Dict[str, Any],
     with open("model_history.json", "w", encoding="utf-8") as f:
         json.dump(history, f, indent=4, ensure_ascii=False)
 
-    filename = "final_rf_model.joblib" if model_type == "tuned" else "base_rf_model.joblib"
-    joblib.dump(model, filename)
-    
+    fn = "final_rf_model.joblib" if model_type == "tuned" else "base_rf_model.joblib"
+    joblib.dump(model, fn)
+
 @pipeline(enable_cache=False)
-def main_pipeline(path: str, label_map: Dict[int, str]):
-    df = load_dataset(path)
+def main_pipeline(
+    dataset_path: str = "../../../../datasets/AdultIncome/adult_combined.csv"
+    ):
+    df = load_dataset(path=dataset_path)
     df2 = preprocess_data(df)
     df3, feature_names = feature_selection(df2)
     X_tr, X_te, y_tr, y_te = split_data(df3)
-    m0, base_model = train_rf(
+    m0, base_model, base_m = train_rf(
         X_train=X_tr,
         X_test=X_te,
         y_train=y_tr,
         y_test=y_te,
         feature_names=feature_names,
-        label_map=label_map
+        label_map=LABEL_MAP
     )
-    save_artifacts(m0, base_model, "base")
-    m1, final_model = tune_rf(
+    # save_artifacts(metrics=m0, model=base_model, model_type="base")
+    m1, final_model, tuned_m = tune_rf(
         X_train=X_tr,
         X_test=X_te,
         y_train=y_tr,
         y_test=y_te,
         feature_names=feature_names,
-        label_map=label_map
+        label_map=LABEL_MAP
     )
-    save_artifacts(m1, final_model, "tuned")
-
+    # save_artifacts(metrics=m1, model=final_model, model_type="tuned")
+    save_metrics(base_metrics=base_m, tuned_metrics=tuned_m)
+    
 if __name__ == "__main__":
-    main_pipeline(
-        path="../../../../datasets/AdultIncome/adult_combined.csv",
-        label_map={0: "<=50K", 1: ">50K"}
-    )
+    # Run from ZenML folder
+    # main_pipeline()
+    
+    # Run from mlops-platforms-benchmark-comparison folder - for benchmark
+    main_pipeline(dataset_path="datasets/AdultIncome/adult_combined.csv")
 

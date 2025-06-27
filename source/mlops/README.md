@@ -18,7 +18,7 @@
 ## MetaFlow - Adult Income dataset
 
 ```bash
-    python3 MetaFlow-Adult.py run --with card
+    python3 MetaFlow-Adult.py run --with card --dataset-path ./../../../../datasets/AdultIncome/adult_combined.csv
     # http://localhost:8324 
     python3 MetaFlow-Adult.py card server
     # python3 MetaFlow-Adult.py card view start
@@ -39,8 +39,11 @@
 ```bash
     zenml init
     export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
+    # python3 ZenML-Adult.py
+    python3 ZenML-Adult.py run --pipeline main_pipeline --dataset-path ./../../../../datasets/AdultIncome/adult_combined.csv
+
     zenml login --local
-    python3 ZenML-Adult.py
     zenml logout --local
 
         zenml server up –> pornește serverul (daemon sau Docker).

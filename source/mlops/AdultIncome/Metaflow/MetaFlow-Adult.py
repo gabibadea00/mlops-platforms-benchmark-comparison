@@ -1,37 +1,39 @@
+#!/usr/bin/env python3
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix
-from metaflow import FlowSpec, step, Parameter
-from metaflow import card, current
-from metaflow.cards import Markdown, Table, Artifact, Image
+from metaflow import FlowSpec, step, Parameter, card, current
+from metaflow.cards import Markdown, Table, Artifact
+import json
 
 class MyRFFlow(FlowSpec):
     dataset_path = Parameter(
-        "dataset-path",
-        default="../../../../datasets/AdultIncome/adult_combined.csv"
+        'dataset-path',
+        help='Calea către fișierul adult_combined.csv',
+        default='../../../../datasets/AdultIncome/adult_combined.csv'
     )
 
     @step
     def start(self):
-        print("Dataset path:", self.dataset_path)
+        print("📁 Dataset path:", self.dataset_path)
         df = pd.read_csv(self.dataset_path)
 
         # transformări
-        df = pd.concat([df.drop('Occupation', axis=1), 
+        df = pd.concat([df.drop('Occupation', axis=1),
                         pd.get_dummies(df['Occupation']).add_prefix('Occupation_')], axis=1)
-        df = pd.concat([df.drop('Workclass', axis=1), 
+        df = pd.concat([df.drop('Workclass', axis=1),
                         pd.get_dummies(df['Workclass']).add_prefix('Workclass_')], axis=1)
         df = df.drop(['Education', 'fnlwgt'], axis=1)
-        df = pd.concat([df.drop('Marital-status', axis=1), 
+        df = pd.concat([df.drop('Marital-status', axis=1),
                         pd.get_dummies(df['Marital-status']).add_prefix('Marital-status_')], axis=1)
-        df = pd.concat([df.drop('Relationship', axis=1), 
+        df = pd.concat([df.drop('Relationship', axis=1),
                         pd.get_dummies(df['Relationship']).add_prefix('Relationship_')], axis=1)
-        df = pd.concat([df.drop('Race', axis=1), 
+        df = pd.concat([df.drop('Race', axis=1),
                         pd.get_dummies(df['Race']).add_prefix('Race_')], axis=1)
-        df = pd.concat([df.drop('Native-country', axis=1), 
+        df = pd.concat([df.drop('Native-country', axis=1),
                         pd.get_dummies(df['Native-country']).add_prefix('Native-country_')], axis=1)
         df['Sex'] = df['Sex'].map({'Male':1,'Female':0})
         df['Earning_potential'] = df['Earning_potential'].apply(lambda x: 1 if '>50K' in x else 0)
@@ -63,7 +65,8 @@ class MyRFFlow(FlowSpec):
             'min_samples_split': [2,4],
             'max_features': ['sqrt','log2']
         }
-        gs = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=3, n_jobs=-1)
+        gs = GridSearchCV(RandomForestClassifier(random_state=42),
+                          param_grid, cv=3, n_jobs=-1)
         gs.fit(self.X_train, self.y_train)
         self.best_clf = gs.best_estimator_
         self.best_params = gs.best_params_
@@ -78,15 +81,45 @@ class MyRFFlow(FlowSpec):
         self.classif_report = classification_report(self.y_test, preds, output_dict=True)
         print("✅ Confusion Matrix:", self.confusion_matrix)
         self.next(self.end)
-        
-    @card(type='blank')  # la pasul care te interesează
+
+    @card(type='blank', id='metrics_card')
     @step
     def end(self):
-        current.card.append(Markdown(f"## Tuned ACC = {self.tuned_acc:.4f}"))
-        current.card.append(Table([["Baseline ACC", self.baseline_acc],
-                                ["Tuned ACC", self.tuned_acc]],
-                                headers=["Statistică", "Valoare"]))
-        current.card.append(Artifact(self.best_params, name="Best params"))
+        c = current.card['metrics_card']
+        c.append(Markdown(f"## 🔍 Tuned Accuracy: **{self.tuned_acc:.4f}**"))
+        c.append(Table([...], headers=[...]))
+        c.append(Artifact(self.best_params, name="Best hyperparams"))
+
+        # Calcul metrici baseline
+        preds_b = self.clf.predict(self.X_test)
+        tn_b, fp_b, fn_b, tp_b = confusion_matrix(self.y_test, preds_b).ravel()
+        recall_b = tp_b/(tp_b+fn_b)
+        fpr_b = fp_b/(fp_b+tn_b)
+        f1_b = self.classif_report['1']['f1-score']
+
+        preds_t = self.best_clf.predict(self.X_test)
+        cm = confusion_matrix(self.y_test, preds_t)
+        tn, fp, fn, tp = cm.ravel()
+
+        metrics_out = {
+            "initial_rf": {
+                "accuracy": float(self.baseline_acc),
+                "f1_score": float(f1_b),
+                "tpr": float(recall_b),
+                "fpr": float(fpr_b),
+                "confusion_matrix": {"TP": int(tp_b), "TN": int(tn_b), "FP": int(fp_b), "FN": int(fn_b)},
+            },
+            "tuned_rf": {
+                "accuracy": float(self.tuned_acc),
+                "f1_score": float(self.classif_report['1']['f1-score']),
+                "tpr": float(self.classif_report['1']['recall']),
+                "fpr": float(fp / (fp + tn)),
+                "confusion_matrix": {"TP": int(tp), "TN": int(tn), "FP": int(fp), "FN": int(fn)},
+            }
+        }
+        with open("model_metrics.json", "w") as f:
+            json.dump(metrics_out, f, indent=2)
+        print("✅ Metrice salvate în model_metrics.json")
 
 if __name__ == "__main__":
     MyRFFlow()
