@@ -1,0 +1,254 @@
+{
+  "AdultIncome": {
+    "baseline": {
+      "duration": 27.93,
+      "success": true,
+      "code_changes": {
+        "added": 0,
+        "deleted": 0,
+        "base_lines": 0
+      },
+      "artifacts": {
+        "artifact_count": 0,
+        "artifact_size": 0
+      },
+      "metrics": {
+        "initial_rf": {
+          "accuracy": 0.8473743474255298,
+          "f1_score": 0.6595113039506737,
+          "tpr": 0.6131634819532908,
+          "fpr": 0.07823037496628
+        },
+        "tuned_rf": {
+          "accuracy": 0.8601699252738254,
+          "f1_score": 0.6581581581581581,
+          "tpr": 0.5583864118895966,
+          "fpr": 0.0439708659293229
+        },
+        "duration": 27.93,
+        "code_changes": {
+          "added": 0,
+          "deleted": 0,
+          "base_lines": 0
+        },
+        "artifact_count": 0,
+        "artifact_size": 0
+      }
+    },
+    "mlflow": {
+      "duration": 13.25,
+      "success": true,
+      "code_changes": {
+        "added": 104,
+        "deleted": 0,
+        "base_lines": 217
+      },
+      "artifacts": {
+        "artifact_count": 36,
+        "artifact_size": 220607120
+      },
+      "metrics": {
+        "initial_rf": {
+          "accuracy": 0.8464530658204524,
+          "f1_score": 0.656121045392022,
+          "tpr": 0.6076433121019108,
+          "fpr": 0.07769085513892636
+        },
+        "tuned_rf": {
+          "accuracy": 0.8565871634763026,
+          "f1_score": 0.6393822393822394,
+          "tpr": 0.5273885350318471,
+          "fpr": 0.03884542756946318
+        },
+        "duration": 13.25,
+        "code_changes": {
+          "added": 104,
+          "deleted": 0,
+          "base_lines": 217
+        },
+        "artifact_count": 36,
+        "artifact_size": 220607120
+      }
+    },
+    "metaflow": {
+      "duration": 60.78,
+      "success": true,
+      "code_changes": {
+        "added": 195,
+        "deleted": 0,
+        "base_lines": 217
+      },
+      "artifacts": {
+        "artifact_count": 465,
+        "artifact_size": 145044442
+      },
+      "metrics": {
+        "initial_rf": {
+          "accuracy": 0.8464530658204524,
+          "f1_score": 0.656121045392022,
+          "tpr": 0.6076433121019108,
+          "fpr": 0.07769085513892636
+        },
+        "tuned_rf": {
+          "accuracy": 0.8599651960282526,
+          "f1_score": 0.6736641221374046,
+          "tpr": 0.5995753715498938,
+          "fpr": 0.05732398165632587
+        },
+        "duration": 60.78,
+        "code_changes": {
+          "added": 195,
+          "deleted": 0,
+          "base_lines": 217
+        },
+        "artifact_count": 465,
+        "artifact_size": 145044442
+      }
+    },
+    "zenml": {
+      "duration": 28.82,
+      "success": true,
+      "code_changes": {
+        "added": 208,
+        "deleted": 0,
+        "base_lines": 217
+      },
+      "artifacts": {
+        "artifact_count": 1,
+        "artifact_size": 220
+      },
+      "metrics": {
+        "initial_rf": {
+          "accuracy": 0.8473743474255298,
+          "f1_score": 0.6595113039506737,
+          "tpr": 0.6131634819532908,
+          "fpr": 0.07823037496628
+        },
+        "tuned_rf": {
+          "accuracy": 0.8601699252738254,
+          "f1_score": 0.6581581581581581,
+          "tpr": 0.5583864118895966,
+          "fpr": 0.0439708659293229
+        },
+        "duration": 28.82,
+        "code_changes": {
+          "added": 208,
+          "deleted": 0,
+          "base_lines": 217
+        },
+        "artifact_count": 1,
+        "artifact_size": 220
+      }
+    }
+  },
+  "DeepCovid": {
+    "baseline": {
+      "duration": 363.53,
+      "success": true,
+      "code_changes": {
+        "added": 0,
+        "deleted": 0,
+        "base_lines": 0
+      },
+      "artifacts": {
+        "artifact_count": 0,
+        "artifact_size": 0
+      },
+      "metrics": {
+        "accuracy": 0.967741935483871,
+        "f1_score": 0.9836065573770492,
+        "tpr": 1.0,
+        "fpr": 1.0,
+        "duration": 363.53,
+        "code_changes": {
+          "added": 0,
+          "deleted": 0,
+          "base_lines": 0
+        },
+        "artifact_count": 0,
+        "artifact_size": 0
+      }
+    },
+    "mlflow": {
+      "duration": 380.47,
+      "success": true,
+      "code_changes": {
+        "added": 120,
+        "deleted": 0,
+        "base_lines": 194
+      },
+      "artifacts": {
+        "artifact_count": 26,
+        "artifact_size": 105055502
+      },
+      "metrics": {
+        "accuracy": 0.967741935483871,
+        "f1_score": 0.9836065573770492,
+        "tpr": 1.0,
+        "fpr": 1.0,
+        "duration": 380.47,
+        "code_changes": {
+          "added": 120,
+          "deleted": 0,
+          "base_lines": 194
+        },
+        "artifact_count": 26,
+        "artifact_size": 105055502
+      }
+    },
+    "metaflow": {
+      "duration": 437.03,
+      "success": true,
+      "code_changes": {
+        "added": 196,
+        "deleted": 0,
+        "base_lines": 194
+      },
+      "artifacts": {
+        "artifact_count": 319,
+        "artifact_size": 182289972
+      },
+      "metrics": {
+        "accuracy": 0.967741935483871,
+        "f1_score": 0.9836065573770492,
+        "tpr": 1.0,
+        "fpr": 1.0,
+        "duration": 437.03,
+        "code_changes": {
+          "added": 196,
+          "deleted": 0,
+          "base_lines": 194
+        },
+        "artifact_count": 319,
+        "artifact_size": 182289972
+      }
+    },
+    "zenml": {
+      "duration": 397.48,
+      "success": true,
+      "code_changes": {
+        "added": 196,
+        "deleted": 0,
+        "base_lines": 194
+      },
+      "artifacts": {
+        "artifact_count": 1,
+        "artifact_size": 220
+      },
+      "metrics": {
+        "accuracy": 0.967741935483871,
+        "f1_score": 0.9836065573770492,
+        "tpr": 1.0,
+        "fpr": 1.0,
+        "duration": 397.48,
+        "code_changes": {
+          "added": 196,
+          "deleted": 0,
+          "base_lines": 194
+        },
+        "artifact_count": 1,
+        "artifact_size": 220
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+[1;35mSetting the repo active project to 'default'.[0m
+[33mSetting the repo active stack to default.[0m
+ZenML repository initialized at /Users/badeadangabriel/Desktop/DOCTORAT/ROEDUNET/mlops-platforms-benchmark-comparison.
+The local active stack was initialized to 'default'. This local configuration will only take effect when you're running ZenML from the initialized repository 
+root, or from a subdirectory. For more information on repositories and configurations, please visit 
+https://docs.zenml.io/user-guides/production-guide/understand-stacks.
+[1;35mInitiating a new run for the pipeline: [0m[1;36mmain_pipeline[1;35m.[0m
+[1;35mPyTorch version 2.7.1 available.[0m
+[1;35mTensorFlow version 2.19.0 available.[0m
+[33mIn a future release, the default Python package installer used by ZenML to build container images for your containerized pipelines will change from 'pip' to 'uv'. To maintain current behavior, you can explicitly set [0m[1;36mpython_package_installer=PythonPackageInstaller.PIP[33m in your DockerSettings.[0m
+[1;35mCaching is disabled by default for [0m[1;36mmain_pipeline[1;35m.[0m
+[1;35mUsing user: [0m[1;36mdefault[1;35m[0m
+[1;35mUsing stack: [0m[1;36mdefault[1;35m[0m
+[1;35m  orchestrator: [0m[1;36mdefault[1;35m[0m
+[1;35m  artifact_store: [0m[1;36mdefault[1;35m[0m
+[1;35mYou can visualize your pipeline runs in the [0m[1;36mZenML Dashboard[1;35m. In order to try it locally, please run [0m[1;36mzenml login --local[1;35m.[0m
+[1;35mStep [0m[1;36mload_dataset[1;35m has started.[0m
+[1;35mStep [0m[1;36mload_dataset[1;35m has finished in [0m[1;36m0.445s[1;35m.[0m
+[1;35mStep [0m[1;36mpreprocess_data[1;35m has started.[0m
+[1;35mStep [0m[1;36mpreprocess_data[1;35m has finished in [0m[1;36m0.436s[1;35m.[0m
+[1;35mStep [0m[1;36mfeature_selection[1;35m has started.[0m
+[1;35mStep [0m[1;36mfeature_selection[1;35m has finished in [0m[1;36m0.757s[1;35m.[0m
+[1;35mStep [0m[1;36msplit_data[1;35m has started.[0m
+[1;35mStep [0m[1;36msplit_data[1;35m has finished in [0m[1;36m1.631s[1;35m.[0m
+[1;35mStep [0m[1;36mtrain_rf[1;35m has started.[0m
+[1;35mStep [0m[1;36mtrain_rf[1;35m has finished in [0m[1;36m2.108s[1;35m.[0m
+[1;35mStep [0m[1;36mtune_rf[1;35m has started.[0m
+[1;35mStep [0m[1;36mtune_rf[1;35m has finished in [0m[1;36m8.580s[1;35m.[0m
+[1;35mStep [0m[1;36msave_metrics[1;35m has started.[0m
+[save_metrics] ✅ Saved model_metrics.json
+[1;35mStep [0m[1;36msave_metrics[1;35m has finished in [0m[1;36m0.291s[1;35m.[0m
+[1;35mPipeline run has finished in [0m[1;36m16.362s[1;35m.[0m

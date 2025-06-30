@@ -62,10 +62,10 @@ datasets/
 Install them using: pip install -r requirements.txt
 ```
 
-### Benchmark for this all models:
+### Benchmark for all these models:
 
 ```bash
     -> Rulez din mlops-platforms-benchmark-comparison/
 
-    python3 source/benchmark_mlop.py
+    python3 source/benchmark_mlop.py --runs 2
 ```

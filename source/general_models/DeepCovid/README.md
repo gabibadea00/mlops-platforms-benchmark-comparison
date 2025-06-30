@@ -32,7 +32,7 @@ The training script gets a few arguments from the user, such as the training dat
 **You can run the training code as (you can of course change the values of arguments):**
 
 ```
-python3 ResNet18_train.py --dataset_path ./../../../datasets/DeepCovid/data_upload_v3 --batch_size 20 --epoch 20 --num_workers 8 --learning_rate 0.001
+python3 ResNet18_train.py --dataset_path ./../../../datasets/DeepCovid/data_upload_v3 --batch_size 20 --epoch 2 --num_workers 8 --learning_rate 0.001
 ```
 
 This code fine-tunes a pre-trained ResNet18 model on the training dataset. 

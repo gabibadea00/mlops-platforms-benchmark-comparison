@@ -1,0 +1,6 @@
+Metaflow 2.15.18 executing CovidResNetFlow for user:badeadangabriel
+Creating local datastore in current directory (/Users/badeadangabriel/Desktop/DOCTORAT/ROEDUNET/mlops-platforms-benchmark-comparison/.metaflow)
+Validating your flow...
+    The graph looks good!
+Running pylint...
+    Pylint is happy!

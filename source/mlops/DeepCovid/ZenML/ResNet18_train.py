@@ -14,15 +14,15 @@ from torch.optim import lr_scheduler
 from torchvision import datasets, models, transforms
 from torch.utils.data import DataLoader
 from torchvision.models import ResNet18_Weights
-
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 
 @step
 def parse_args() -> Dict[str, Any]:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_path", type=str, default="./data")
     parser.add_argument("--batch_size", type=int, default=20)
-    parser.add_argument("--epochs", type=int, default=25)
-    parser.add_argument("--num_workers", type=int, default=8)
+    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--num_workers", type=int, default=16)
     parser.add_argument("--learning_rate", type=float, default=1e-4)
     parser.add_argument("--momentum", type=float, default=0.9)
     args = parser.parse_args()
@@ -108,17 +108,43 @@ def train_model(
         scheduler.step()
 
     model.load_state_dict(best_wts)
+    
+    y_true, y_pred = [], []
+    model.eval()
+    with torch.no_grad():
+        for x, y in loaders["test"]:
+            x, y = x.to(device), y.to(device)
+            out = model(x)
+            preds = out.argmax(dim=1)
+            y_true.extend(y.cpu().tolist())
+            y_pred.extend(preds.cpu().tolist())
+
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    acc = float(accuracy_score(y_true, y_pred))
+    f1 = float(f1_score(y_true, y_pred))
+    tpr = float(tp / (tp + fn) if (tp + fn) > 0 else 0.0)
+    fpr = float(fp / (fp + tn) if (fp + tn) > 0 else 0.0)
+
     total_time = time.time() - since
-    result = {"stats": stats, "best_test_acc": best_acc, "train_time_s": total_time}
+    result = {
+        "stats": stats,
+        "best_test_acc": float(best_acc),
+        "train_time_s": total_time,
+        "accuracy": acc,
+        "f1_score": f1,
+        "tpr": tpr,
+        "fpr": fpr
+    }
+
     log_metadata(metadata=result)
     return model, result
 
 @step
 def save_outputs(model: nn.Module, train_info: Dict[str, Any]) -> None:
-    torch.save(model.state_dict(), "covid_resnet18_final.pth")
-    with open("covid_training_metrics.json", "w") as f:
+    # torch.save(model.state_dict(), "covid_resnet18_final.pth")
+    # log_metadata(metadata={"saved_model": "covid_resnet18_final.pth"})
+    with open("model_metrics.json", "w") as f:
         json.dump(train_info, f, indent=4)
-    log_metadata(metadata={"saved_model": "covid_resnet18_final.pth"})
 
 # ---------- Pipeline ----------
 

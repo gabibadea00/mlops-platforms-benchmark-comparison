@@ -10,9 +10,9 @@ from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 import json
 from torchvision.models import ResNet18_Weights
-
 import mlflow, mlflow.pytorch
 from mlflow.models.signature import infer_signature
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 
 def parse_args():
     parser = argparse.ArgumentParser(description='COVID-19 Detection from X-ray Images')
@@ -59,6 +59,50 @@ def imshow(inp, title=None):
     plt.imshow(inp)
     if title: plt.title(title)
     plt.pause(0.001)
+
+def compute_metrics(y_true, y_pred):
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    accuracy = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
+    tpr = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    return {
+        "accuracy": accuracy,
+        "f1_score": f1,
+        "tpr": tpr,
+        "fpr": fpr
+    }
+
+def collect_metrics(training_stats: dict, class_names: list, args, best_acc: float, device: str, y_true, y_pred):
+    final_metrics = compute_metrics(y_true, y_pred)
+    
+    metrics = {
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "learning_rate": args.learning_rate,
+        "momentum": args.momentum,
+        "device": device,
+        "model": "resnet18",
+        "frozen_layers": "all except fc",
+        "optimizer": "SGD",
+        "scheduler": {
+            "type": "StepLR",
+            "step_size": 7,
+            "gamma": 0.1
+        },
+        "accuracy": final_metrics["accuracy"],
+        "f1_score": final_metrics["f1_score"],
+        "tpr": final_metrics["tpr"],
+        "fpr": final_metrics["fpr"],
+        "class_names": class_names,
+        "training_stats": training_stats,
+        "best_test_accuracy": round(best_acc, 4)
+    }
+
+    with open("model_metrics.json", "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    print("✅ Metricile au fost salvate în 'model_metrics.json'")
 
 def train_model(dataloaders, dataset_sizes, model, criterion, optimizer, scheduler, device, num_epochs=20):
     since = time.time()
@@ -156,31 +200,6 @@ def build_model():
     model.fc = nn.Linear(num_ftrs, 2)
     return model
 
-def collect_metrics(training_stats: dict, class_names: list, args, best_acc: float, device: str):
-    metrics = {
-        "epochs": args.epochs,
-        "batch_size": args.batch_size,
-        "learning_rate": args.learning_rate,
-        "momentum": args.momentum,
-        "device": device,
-        "model": "resnet18",
-        "frozen_layers": "all except fc",
-        "optimizer": "SGD",
-        "scheduler": {
-            "type": "StepLR",
-            "step_size": 7,
-            "gamma": 0.1
-        },
-        "class_names": class_names,
-        "training_stats": training_stats,
-        "best_test_accuracy": round(best_acc, 4)
-    }
-
-    with open("covid_training_metrics.json", "w") as f:
-        json.dump(metrics, f, indent=4)
-
-    print("✅ Metricile au fost salvate în 'covid_training_metrics.json'")
-
 def main():
     mlflow.set_experiment("COVID19_ResNet18")
     mlflow.pytorch.autolog()
@@ -216,10 +235,22 @@ def main():
         ),
         input_example=torch.randn(1,3,224,224).numpy()
     )
+    
+    # Evaluate on test set
+    y_true, y_pred = [], []
+    model.eval()
+    with torch.no_grad():
+        for inputs, labels in dataloaders['test']:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            y_true.extend(labels.cpu().numpy())
+            y_pred.extend(preds.cpu().numpy())
 
-    torch.save(model, f'covid_resnet18_epoch{args.epochs}.pt')
-    collect_metrics(stats, class_names, args, best_acc.item(), str(device))
-    visualize_model(dataloaders, model, device, class_names)
+    collect_metrics(stats, class_names, args, best_acc, str(device), y_true, y_pred)
+    # torch.save(model, f'covid_resnet18_epoch{args.epochs}.pt')
+    # visualize_model(dataloaders, model, device, class_names)
 
 
 if __name__ == '__main__':

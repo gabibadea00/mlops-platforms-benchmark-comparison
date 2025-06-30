@@ -48,4 +48,3 @@ source/mlops/BertSum/ZenML/temp/
 source/mlops/BertSum/ZenML/urls/
 
 # Ignore Benchmark results
-benchmark_results/

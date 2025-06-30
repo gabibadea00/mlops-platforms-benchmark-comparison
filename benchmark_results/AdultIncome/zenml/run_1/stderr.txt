@@ -1,0 +1,4 @@
+/Users/badeadangabriel/Desktop/DOCTORAT/ROEDUNET/mlops-platforms-benchmark-comparison/venv/lib/python3.9/site-packages/zenml/cli/utils.py:43: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+/Users/badeadangabriel/Desktop/DOCTORAT/ROEDUNET/mlops-platforms-benchmark-comparison/venv/lib/python3.9/site-packages/zenml/integrations/integration.py:19: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources

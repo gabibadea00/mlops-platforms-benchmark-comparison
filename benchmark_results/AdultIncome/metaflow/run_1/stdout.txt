@@ -1,0 +1,18 @@
+2025-06-30 23:31:02.213 Workflow starting (run-id 1751315462212720):
+2025-06-30 23:31:02.230 [1751315462212720/start/1 (pid 43534)] Task is starting.
+2025-06-30 23:31:06.133 [1751315462212720/start/1 (pid 43534)] Task finished successfully.
+2025-06-30 23:31:06.142 [1751315462212720/preprocess/2 (pid 43564)] Task is starting.
+2025-06-30 23:31:10.386 [1751315462212720/preprocess/2 (pid 43564)] Task finished successfully.
+2025-06-30 23:31:10.395 [1751315462212720/train/3 (pid 43590)] Task is starting.
+2025-06-30 23:31:16.952 [1751315462212720/train/3 (pid 43590)] Task finished successfully.
+2025-06-30 23:31:16.961 [1751315462212720/tune/4 (pid 43618)] Task is starting.
+2025-06-30 23:31:44.068 [1751315462212720/tune/4 (pid 43618)] Task finished successfully.
+2025-06-30 23:31:44.077 [1751315462212720/evaluate/5 (pid 43693)] Task is starting.
+2025-06-30 23:31:45.930 [1751315462212720/evaluate/5 (pid 43693)] 📊 model_metrics.json salvat.
+2025-06-30 23:31:49.727 [1751315462212720/evaluate/5 (pid 43693)] Task finished successfully.
+2025-06-30 23:31:49.736 [1751315462212720/test/6 (pid 43720)] Task is starting.
+2025-06-30 23:31:53.586 [1751315462212720/test/6 (pid 43720)] Task finished successfully.
+2025-06-30 23:31:53.594 [1751315462212720/end/7 (pid 43746)] Task is starting.
+2025-06-30 23:31:54.748 [1751315462212720/end/7 (pid 43746)] ✅ Flow finalizat cu succes.
+2025-06-30 23:31:57.441 [1751315462212720/end/7 (pid 43746)] Task finished successfully.
+2025-06-30 23:31:57.442 Done!

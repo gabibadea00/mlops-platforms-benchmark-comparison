@@ -1,14 +1,14 @@
 from metaflow import FlowSpec, step, card, current, Parameter, conda_base, conda
-from metaflow.cards import Markdown, VegaChart, Image, Artifact, Table, ProgressBar
-import os, copy, time, argparse, json
+from metaflow.cards import Markdown, VegaChart, ProgressBar
+import os, copy, time, json
 import torch, torch.nn as nn, torch.optim as optim
 from torch.optim import lr_scheduler
-import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, roc_curve, auc
 from torchvision.models import ResNet18_Weights
+from sklearn.metrics import confusion_matrix, roc_curve, auc, accuracy_score, f1_score
+import torch
+torch.set_num_threads(1)
 
 @conda_base(packages={
     "pytorch::pytorch": "2.0.1",
@@ -19,8 +19,8 @@ from torchvision.models import ResNet18_Weights
 })
 class CovidResNetFlow(FlowSpec):
     batch_size = Parameter('batch_size', type=int, default=20)
-    epochs = Parameter('epochs', type=int, default=10)
-    learning_rate = Parameter('lr', type=float, default=1e-4)
+    epochs = Parameter('epoch', type=int, default=10)
+    learning_rate = Parameter('learning_rate', type=float, default=1e-4)
     momentum = Parameter('momentum', type=float, default=0.9)
     dataset_path = Parameter('dataset-path', default='./../../../../datasets/DeepCovid/data_upload_v3')
 
@@ -60,7 +60,7 @@ class CovidResNetFlow(FlowSpec):
             for phase in ['train','test']
         }
         self.dl = {
-            phase: DataLoader(data[phase], batch_size=self.batch_size, shuffle=True, num_workers=4)
+            phase: DataLoader(data[phase], batch_size=self.batch_size, shuffle=True, num_workers=0)
             for phase in ['train','test']
         }
         self.sizes = {phase: len(data[phase]) for phase in data}
@@ -141,7 +141,7 @@ class CovidResNetFlow(FlowSpec):
             x = x.to(self.device)
             with torch.no_grad():
                 out = model(x)
-                prob = softmax(out)[:,1].cpu().numpy()
+                prob = softmax(out)[:, 1].cpu().numpy()
                 pred = out.argmax(dim=1).cpu().numpy()
             all_preds.extend(pred)
             all_labels.extend(y.numpy())
@@ -151,6 +151,12 @@ class CovidResNetFlow(FlowSpec):
         fpr, tpr, _ = roc_curve(all_labels, all_probs)
         roc_auc = auc(fpr, tpr)
 
+        acc = accuracy_score(all_labels, all_preds)
+        f1 = f1_score(all_labels, all_preds)
+        tn, fp, fn, tp = cm.ravel()
+        tpr_point = tp / (tp + fn) if (tp + fn) else 0.0
+        fpr_point = fp / (fp + tn) if (fp + tn) else 0.0
+
         current.card['eval_card'].append(
             VegaChart({
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
@@ -159,20 +165,33 @@ class CovidResNetFlow(FlowSpec):
                 "encoding": {"x": {"field": "fpr"}, "y": {"field": "tpr"}}
             })
         )
-        current.card['eval_card'].append(Markdown(f"**Confusion Matrix**:\n```\n{cm}\n```\n**AUC**: {roc_auc:.3f}"))
+
+        current.card['eval_card'].append(Markdown(
+            f"**Confusion Matrix**:\n```\n{cm}\n```\n"
+            f"**AUC**: {roc_auc:.3f}\n"
+            f"**Accuracy**: {acc:.3f}, **F1-score**: {f1:.3f}, "
+            f"**TPR**: {tpr_point:.3f}, **FPR**: {fpr_point:.3f}"
+        ))
 
         self.confusion = cm.tolist()
         self.roc_auc = roc_auc
+        self.accuracy = float(acc)
+        self.f1 = float(f1)
+        self.tpr_point = float(tpr_point)
+        self.fpr_point = float(fpr_point)
         self.next(self.end)
-
 
     @conda(packages={"pytorch::pytorch":"2.0.1","pytorch::torchvision":"0.15.2","matplotlib":"3.7.1","numpy":"1.23.*"})
     @step
     def end(self):
-        with open("metrics.json","w") as f:
+        with open("model_metrics.json","w") as f:
             json.dump({
                 'confusion_matrix': self.confusion,
                 'roc_auc': self.roc_auc,
+                'accuracy': self.accuracy,
+                'f1_score': self.f1,
+                'tpr': self.tpr_point,
+                'fpr': self.fpr_point,
                 'stats': self.stats
             }, f, indent=2)
         print("✅ Flow done.")
