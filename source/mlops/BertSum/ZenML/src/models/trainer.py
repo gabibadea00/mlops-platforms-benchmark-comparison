@@ -427,3 +427,45 @@ class Trainer(object):
         """
         if self.model_saver is not None:
             self.model_saver.maybe_save(step)
+
+    def train_step(self, batch):
+        """
+        Run a single forward/backward/update on `batch`.
+        Returns: the scalar loss as a Python float.
+        """
+        # make sure we’re in training mode
+        self.model.train()
+
+        # zero out gradients
+        self.model.zero_grad()
+
+        # unpack your batch (adapt these to however your loader packages things)
+        src, labels, segs, clss, mask, mask_cls = (
+            batch.src, batch.labels,
+            batch.segs, batch.clss,
+            batch.mask, batch.mask_cls
+        )
+
+        # forward
+        sent_scores, mask = self.model(src, segs, clss, mask, mask_cls)
+        loss = self.loss(sent_scores, labels.float())
+        loss = (loss * mask.float()).sum()
+
+        # backward + step
+        loss.backward()
+        # if you’re doing multi-GPU or gradient-accum you'll already have those hooks in `optim.step()`
+        self.optim.step()
+
+        # return a Python float
+        return loss.item()
+
+    def save_checkpoint(self, path):
+        """
+        Save model+optimizer+config to `path`, exactly like your script expects.
+        """
+        state = {
+            'model': self.model.state_dict(),
+            'opt':   self.args,
+            'optim': self.optim,  # or self.optim.state_dict() if you prefer
+        }
+        torch.save(state, path)
