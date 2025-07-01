@@ -1,8 +1,8 @@
 [1;35mSetting the repo active project to 'default'.[0m
 [33mSetting the repo active stack to default.[0m
 ZenML repository initialized at /Users/badeadangabriel/Desktop/DOCTORAT/ROEDUNET/mlops-platforms-benchmark-comparison.
-The local active stack was initialized to 'default'. This local configuration will only take effect when you're running ZenML from the initialized repository 
-root, or from a subdirectory. For more information on repositories and configurations, please visit 
+The local active stack was initialized to 'default'. This local configuration will only take effect when you're running ZenML from 
+the initialized repository root, or from a subdirectory. For more information on repositories and configurations, please visit 
 https://docs.zenml.io/user-guides/production-guide/understand-stacks.
 [1;35mInitiating a new run for the pipeline: [0m[1;36mcovid_pipeline[1;35m.[0m
 [1;35mPyTorch version 2.7.1 available.[0m
@@ -15,13 +15,13 @@ https://docs.zenml.io/user-guides/production-guide/understand-stacks.
 [1;35m  artifact_store: [0m[1;36mdefault[1;35m[0m
 [1;35mYou can visualize your pipeline runs in the [0m[1;36mZenML Dashboard[1;35m. In order to try it locally, please run [0m[1;36mzenml login --local[1;35m.[0m
 [1;35mStep [0m[1;36mbuild_model[1;35m has started.[0m
-[1;35mStep [0m[1;36mbuild_model[1;35m has finished in [0m[1;36m0.551s[1;35m.[0m
+[1;35mStep [0m[1;36mbuild_model[1;35m has finished in [0m[1;36m0.629s[1;35m.[0m
 [1;35mStep [0m[1;36mparse_args[1;35m has started.[0m
 [1;35mStep [0m[1;36mparse_args[1;35m has finished in [0m[1;36m0.021s[1;35m.[0m
 [1;35mStep [0m[1;36mload_data[1;35m has started.[0m
-[1;35mStep [0m[1;36mload_data[1;35m has finished in [0m[1;36m0.604s[1;35m.[0m
+[1;35mStep [0m[1;36mload_data[1;35m has finished in [0m[1;36m0.589s[1;35m.[0m
 [1;35mStep [0m[1;36mtrain_model[1;35m has started.[0m
-[1;35mStep [0m[1;36mtrain_model[1;35m has finished in [0m[1;36m6m22s[1;35m.[0m
+[1;35mStep [0m[1;36mtrain_model[1;35m has finished in [0m[1;36m6m25s[1;35m.[0m
 [1;35mStep [0m[1;36msave_outputs[1;35m has started.[0m
-[1;35mStep [0m[1;36msave_outputs[1;35m has finished in [0m[1;36m0.469s[1;35m.[0m
-[1;35mPipeline run has finished in [0m[1;36m6m25s[1;35m.[0m
+[1;35mStep [0m[1;36msave_outputs[1;35m has finished in [0m[1;36m0.360s[1;35m.[0m
+[1;35mPipeline run has finished in [0m[1;36m6m28s[1;35m.[0m

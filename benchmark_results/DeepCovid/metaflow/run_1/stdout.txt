@@ -1,16 +1,16 @@
-2025-06-30 23:44:57.923 Bootstrapping virtual environment(s) ...
-2025-06-30 23:44:59.000 Virtual environment(s) bootstrapped!
-2025-06-30 23:44:59.143 Workflow starting (run-id 1751316299140867):
-2025-06-30 23:44:59.182 [1751316299140867/start/1 (pid 44601)] Task is starting.
-2025-06-30 23:45:01.151 [1751316299140867/start/1 (pid 44601)] Using device: cpu
-2025-06-30 23:45:06.153 [1751316299140867/start/1 (pid 44601)] Task finished successfully.
-2025-06-30 23:45:06.184 [1751316299140867/train/2 (pid 44635)] Task is starting.
-2025-06-30 23:49:32.285 [1751316299140867/train/2 (pid 44635)] Task finished successfully.
-2025-06-30 23:49:32.317 [1751316299140867/evaluate/3 (pid 45521)] Task is starting.
-2025-06-30 23:52:03.216 [1751316299140867/evaluate/3 (pid 45521)] Task finished successfully.
-2025-06-30 23:52:03.247 [1751316299140867/end/4 (pid 45690)] Task is starting.
-2025-06-30 23:52:03.247 1 task is running: end (1 running; 0 done).
-2025-06-30 23:52:03.247 No tasks are waiting in the queue.
-2025-06-30 23:52:04.351 [1751316299140867/end/4 (pid 45690)] ✅ Flow done.
-2025-06-30 23:52:07.018 [1751316299140867/end/4 (pid 45690)] Task finished successfully.
-2025-06-30 23:52:07.019 Done!
+2025-07-01 11:46:31.001 Bootstrapping virtual environment(s) ...
+2025-07-01 11:46:32.110 Virtual environment(s) bootstrapped!
+2025-07-01 11:46:32.297 Workflow starting (run-id 1751359592293448):
+2025-07-01 11:46:32.344 [1751359592293448/start/1 (pid 68648)] Task is starting.
+2025-07-01 11:46:34.348 [1751359592293448/start/1 (pid 68648)] Using device: cpu
+2025-07-01 11:46:39.548 [1751359592293448/start/1 (pid 68648)] Task finished successfully.
+2025-07-01 11:46:39.582 [1751359592293448/train/2 (pid 68683)] Task is starting.
+2025-07-01 11:51:09.480 [1751359592293448/train/2 (pid 68683)] Task finished successfully.
+2025-07-01 11:51:09.514 [1751359592293448/evaluate/3 (pid 69576)] Task is starting.
+2025-07-01 11:53:42.489 [1751359592293448/evaluate/3 (pid 69576)] Task finished successfully.
+2025-07-01 11:53:42.522 [1751359592293448/end/4 (pid 69696)] Task is starting.
+2025-07-01 11:53:42.522 1 task is running: end (1 running; 0 done).
+2025-07-01 11:53:42.522 No tasks are waiting in the queue.
+2025-07-01 11:53:43.646 [1751359592293448/end/4 (pid 69696)] ✅ Flow done.
+2025-07-01 11:53:46.396 [1751359592293448/end/4 (pid 69696)] Task finished successfully.
+2025-07-01 11:53:46.398 Done!

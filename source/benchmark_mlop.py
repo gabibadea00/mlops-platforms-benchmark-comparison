@@ -147,19 +147,19 @@ def load_metrics(run_dir):
                     print(f"✅ {fp} citit și șters.")
                     # 1. RF-style
                     if isinstance(raw, dict):
-                        out = {}
                         if "initial_rf" in raw or "tuned_rf" in raw:
+                            out = {}
                             for pref in ("initial_rf", "tuned_rf"):
-                                if pref in raw:
-                                    block = raw[pref]
-                                    out[pref] = {m: block.get(m) for m in TARGET_METRICS}
+                                if pref in raw and isinstance(raw[pref], dict):
+                                    out.update(raw[pref])  # aduce metricile la top level
                             return out
+
                         # 2. top-level metrics
                         top = {m: raw.get(m) for m in TARGET_METRICS if m in raw}
                         if top:
                             return top
                         # 3. fallback: orice altă cheie numerică / dict
-                        metrics = {k: v for k, v in raw.items() if isinstance(v, (int, float, str, list, dict))}
+                        metrics = {k: v for k, v in raw.items() if isinstance(v, (int, float))}
                         return metrics
                     else:
                         print(f"⚠️ Format JSON neașteptat în {fp}.")

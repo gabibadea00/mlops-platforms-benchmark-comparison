@@ -1,1 +1,1 @@
-2025/06/30 23:38:33 INFO mlflow.tracking.fluent: Experiment with name 'COVID19_ResNet18' does not exist. Creating a new experiment.
+2025/07/01 11:40:01 INFO mlflow.tracking.fluent: Experiment with name 'COVID19_ResNet18' does not exist. Creating a new experiment.

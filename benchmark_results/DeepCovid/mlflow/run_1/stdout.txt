@@ -1,9 +1,9 @@
 Using device: mps
 Epoch 1/1
 ----------
-train Loss: 0.2080 Acc: 0.9568
-test Loss: 0.1691 Acc: 0.9677
+train Loss: 0.2381 Acc: 0.9453
+test Loss: 0.2040 Acc: 0.9677
 
-Training complete in 4m 5s
+Training complete in 4m 9s
 Best test Acc: 0.9677
 ✅ Metricile au fost salvate în 'model_metrics.json'

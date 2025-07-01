@@ -1,3 +1,3 @@
-2025/06/30 23:59:15 INFO mlflow.tracking.fluent: Experiment with name 'AdultIncome_RF' does not exist. Creating a new experiment.
-2025/06/30 23:59:17 WARNING mlflow.models.model: `artifact_path` is deprecated. Please use `name` instead.
-2025/06/30 23:59:25 WARNING mlflow.models.model: `artifact_path` is deprecated. Please use `name` instead.
+2025/07/01 12:01:00 INFO mlflow.tracking.fluent: Experiment with name 'AdultIncome_RF' does not exist. Creating a new experiment.
+2025/07/01 12:01:02 WARNING mlflow.models.model: `artifact_path` is deprecated. Please use `name` instead.
+2025/07/01 12:01:10 WARNING mlflow.models.model: `artifact_path` is deprecated. Please use `name` instead.
