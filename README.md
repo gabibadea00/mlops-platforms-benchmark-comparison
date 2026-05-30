@@ -5,13 +5,8 @@ This script downloads datasets like Dataset-BERT, Deepcovid, AdultCensus to a sp
 ## Datasets
 
 ### Dataset-BERT
-- TBA
-
 ### Deepcovid
-- TBA
-
 ### AdultCensus
-- TBA
   
 ## Setup
 
@@ -64,8 +59,8 @@ Install them using: pip install -r requirements.txt
 
 ### Benchmark for all these models:
 
-```bash
-    -> Rulez din mlops-platforms-benchmark-comparison/
+-> Run from mlops-platforms-benchmark-comparison/
 
+```bash
     python3 source/benchmark_mlop.py --runs 2
 ```
